@@ -7,6 +7,7 @@ ST_FLASH := /usr/bin/st-flash
 CFLAGS := -gdwarf-4 -g3 -std=c17 -Wall -mcpu=cortex-m3 -DSTM32F103xB
 CFLAGS += -I$(STMCUBE_MODULE_PATH)/Drivers/CMSIS/Core/Include
 CFLAGS += -I$(STMCUBE_MODULE_PATH)/Drivers/CMSIS/Device/ST/STM32F1xx/Include
+CFLAGS += -I$(CURDIR)/include
 CFLAGS += -Tstartup/STM32F103XB_FLASH.ld -nostdlib
 
 .PHONY: all clean upload startup
@@ -32,3 +33,4 @@ firmware.bin: firmware.elf
 
 
 include main/Makefile
+include kernel/Makefile
