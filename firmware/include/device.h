@@ -5,6 +5,9 @@
  * @author Stanislav Timoshko <s4kkkk@mail.ru>
  */
 
+#ifndef INCLUDE_DEVICE_H
+#define INCLUDE_DEVICE_H
+
 #include <stdint.h>
 
 /**
@@ -55,3 +58,4 @@ struct device* device_get_by_name(const char* name);
 /**
  * @}
  */
+#endif /* INCLUDE_DEVICE_H */

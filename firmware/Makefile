@@ -34,3 +34,4 @@ firmware.bin: firmware.elf
 
 include main/Makefile
 include kernel/Makefile
+include drivers/Makefile

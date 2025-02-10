@@ -1,4 +1,5 @@
-CURRENT_PATH := kernel
+THIS_MAKEFILE := $(lastword $(MAKEFILE_LIST))
+THIS_DIR := $(dir $(THIS_MAKEFILE))
 
 SRCS := $(wildcard $(CURRENT_PATH)/*.c)
 OBJS := $(addprefix objs/, $(notdir $(SRCS:.c=.o)))

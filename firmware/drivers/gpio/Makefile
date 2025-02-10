@@ -1,7 +1,7 @@
 THIS_MAKEFILE := $(lastword $(MAKEFILE_LIST))
 CURRENT_PATH := $(dir $(THIS_MAKEFILE))
 
-SRCS := $(wildcard $(CURRENT_PATH)/*.c)
+SRCS := $(CURRENT_PATH)/gpio.c
 OBJS := $(addprefix objs/, $(notdir $(SRCS:.c=.o)))
 
 all: $(OBJS)
