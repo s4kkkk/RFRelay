@@ -8,17 +8,26 @@
 #include <stdint.h>
 
 /**
+ * @brief API подсистемы device
+ * @defgroup device_api API подсистемы device
+ * @{
+ */
+
+/**
  * @brief Структура device, используемая для описания экземпляров драйверов
  */
 struct device {
         /** Имя устройства, и, как следствие, экземпляра драйвера */
         const char* name;
+
         /** Адрес структуры данных конфигурации экземпляра драйвера */
 	const void* config;
+
 	/** Адрес структуры, хранящей указатели на функции API-подсистемы,
          *  реализуемые в драйвере
          */
 	const void* api;
+
 	/** Адрес приватных данных экземпляра драйвера */
 	void* data;
 };
@@ -42,3 +51,7 @@ int8_t device_register(struct device* dev);
  * @return Указатель на struct device или NULL, если устройство не найдено
  */
 struct device* device_get_by_name(const char* name);
+
+/**
+ * @}
+ */
