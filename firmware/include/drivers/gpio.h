@@ -59,7 +59,7 @@ typedef uint32_t gpio_pins_values_t;
 /**
  * @brief
  * Общая для всех драйверов структура. Первый элемент объекта, указываемый полем
- * config в struct device (см. @ref device_api), должен ялвяться этой структурой.
+ * config в struct device (см. @ref device_api), должен являться этой структурой.
  * То есть, поле config в struct device должно указывать на эту структуру
  */
 struct gpio_driver_config {
