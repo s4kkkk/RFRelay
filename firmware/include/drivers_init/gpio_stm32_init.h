@@ -12,6 +12,8 @@
 #ifndef INCLUDE_DRIVERS_INIT_GPIO_STM32_INIT_H
 #define INCLUDE_DRIVERS_INIT_GPIO_STM32_INIT_H
 
+#include <stm32f1xx.h>
+
 #include <device.h>
 #include <drivers/gpio.h>
 
@@ -29,7 +31,7 @@ struct gpio_stm32_config {
         const struct gpio_stm32_settings* user_settings;
 
         /* Базовый адрес регистров */
-        uint32_t* base_reg_address;
+        GPIO_TypeDef* gpio_regs;
 };
 
 /**
@@ -39,7 +41,12 @@ struct gpio_stm32_data {
         uint32_t flag;
 };
 
-extern struct gpio_driver_api gpio_stm32_driver_api;
+extern const struct gpio_driver_api gpio_stm32_driver_api;
+
+/**
+ * @name Инициализация драйвера gpio_stm32
+ * @{
+ */
 
 /**
  * @brief Структура, которую нужно заполнить перед инициализацией
@@ -89,5 +96,9 @@ struct gpio_stm32_settings {
  * @param dev Структура, хранящая все внутрение данные
  */
 int gpio_stm32_init_driver(struct device* dev);
+
+/**
+ * @}
+ */
 
 #endif /* INCLUDE_DRIVERS_INIT_GPIO_STM32_INIT_H */

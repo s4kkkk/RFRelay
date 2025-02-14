@@ -32,8 +32,11 @@
 /** Режим "ВХОД" с подтяжкой питания */
 #define GPIO_INPUT_PULLUP (1U << 1)
 
+/** Режим "вход" с подтяжкой земли */
+#define GPIO_INPUT_PULLDOWN (1U << 2)
+
 /** Режим "ВЫХОД" */
-#define GPIO_OUTPUT (1U << 2)
+#define GPIO_OUTPUT (1U << 3)
 
 /** @} */
 
@@ -143,16 +146,6 @@ struct gpio_driver_api {
          * @retval -1: Ошибка
          */
         int (*pins_clear_raw)(const struct device* port, gpio_pins_t pins);
-
-        /**
-         * @brief Переключить значения пинов @p pins на противоположное
-         * @param port драйвер, управляющий портом
-         * @param pins набор пинов, для которых выполняется действие
-         *
-         * @retval 0: Успех
-         * @retval -1: Ошибка
-         */
-        int (*pins_toggle)(const struct device* port, gpio_pins_t pins);
 };
 
 /** @} */

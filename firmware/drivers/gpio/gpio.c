@@ -11,6 +11,12 @@ int gpio_pin_configure(const struct device* port,
                                      gpio_pin_t pin,
                                      gpio_flags_t flags)
 {
+        struct gpio_driver_config* config = (struct gpio_driver_config* ) port->config;
+        if ( (~(config->port_pins)) & (0b1<<pin) ) {
+                /* Пин не поддерживается */
+                return -1;
+        }
+
         const struct gpio_driver_api* api = 
                 (const struct gpio_driver_api* )port->api;
 
@@ -26,19 +32,31 @@ int gpio_pin_get_config(const struct device* port,
                                       gpio_pin_t pin,
                                       gpio_flags_t* flags)
 {
-         const struct gpio_driver_api* api = 
+        struct gpio_driver_config* config = (struct gpio_driver_config* ) port->config;
+        if ( (~(config->port_pins)) & (0b1<<pin) ) {
+                /* Пин не поддерживается */
+                return -1;
+        }
+
+        const struct gpio_driver_api* api = 
                 (const struct gpio_driver_api* )port->api;
 
-         if (api->pin_get_config == NULL)
-                 return -1;
+        if (api->pin_get_config == NULL)
+                return -1;
 
-         return api->pin_get_config(port, pin, flags);
+        return api->pin_get_config(port, pin, flags);
 }
 
 int gpio_pin_set(const struct device* port,
                                gpio_pin_t pin,
                                uint8_t value)
 {
+        struct gpio_driver_config* config = (struct gpio_driver_config* ) port->config;
+        if ( (~(config->port_pins)) & (0b1<<pin) ) {
+                /* Пин не поддерживается */
+                return -1;
+        }
+
         const struct gpio_driver_api* api = 
                 (const struct gpio_driver_api* )port->api;
         int ret;
@@ -61,6 +79,12 @@ int gpio_pin_set(const struct device* port,
 
 int gpio_pin_read(const struct device* port, gpio_pin_t pin)
 {
+        struct gpio_driver_config* config = (struct gpio_driver_config* ) port->config;
+        if ( (~(config->port_pins)) & (0b1<<pin) ) {
+                /* Пин не поддерживается */
+                return -1;
+        }
+
         const struct gpio_driver_api* api = 
                 (const struct gpio_driver_api* )port->api;
         int ret;
@@ -79,6 +103,12 @@ int gpio_pin_read(const struct device* port, gpio_pin_t pin)
 
 int gpio_pin_toggle(const struct device* port, gpio_pin_t pin)
 {
+        struct gpio_driver_config* config = (struct gpio_driver_config* ) port->config;
+        if ( (~(config->port_pins)) & (0b1<<pin) ) {
+                /* Пин не поддерживается */
+                return -1;
+        }
+
         int ret;
         ret = gpio_pin_read(port, pin);
         if (ret < 0)
