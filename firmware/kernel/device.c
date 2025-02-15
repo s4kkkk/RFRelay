@@ -12,10 +12,10 @@
 
 #define MAX_DEVICES 32
 
-static struct device *device_list[MAX_DEVICES];
+static const struct device *device_list[MAX_DEVICES];
 static size_t device_count = 0;
 
-int8_t device_register(struct device *dev)
+int8_t device_register(const struct device *dev)
 {
         if (device_count < MAX_DEVICES) {
                 device_list[device_count] = dev;
@@ -27,7 +27,7 @@ int8_t device_register(struct device *dev)
         return 0;
 }
 
-struct device* device_get_by_name(const char* name)
+const struct device* device_get_by_name(const char* name)
 {
         for (size_t i = 0; i < device_count; i++) {
                 if (strcmp(device_list[i]->name, name) == 0)

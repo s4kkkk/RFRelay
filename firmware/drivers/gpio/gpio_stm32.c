@@ -11,11 +11,17 @@
 
 #include <drivers_init/gpio_stm32_init.h>
 
+static inline int gpio_init_clock()
+{
+        /* Необходимо включение тактирования APB2 */
+
+        return 0;
+}
+
 /**
  * @brief Инициализация драйвера
  */
-// TODO добавить инициалиазацию тактирования
-int gpio_stm32_init_driver(struct device *dev)
+int gpio_stm32_init_driver(const struct device *dev)
 {
         struct gpio_stm32_config* config = (struct gpio_stm32_config* ) dev->config;
 

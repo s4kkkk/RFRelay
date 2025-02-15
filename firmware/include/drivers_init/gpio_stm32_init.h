@@ -45,6 +45,8 @@ extern const struct gpio_driver_api gpio_stm32_driver_api;
 
 /**
  * @name Инициализация драйвера gpio_stm32
+ * @note Перед инициализацией драйвера необходимо настроить тактирование GPIO.
+ * Драйвер не инициализирует тактирование!
  * @{
  */
 
@@ -67,24 +69,23 @@ struct gpio_stm32_settings {
 };
 
 /**
- * @macro
  * @brief Создание экземпляра драйвера. Создание структуры device
- *
- * @param name имя создаваемого экземпляра драйвера. По этому имени можно
+ * @hideinitializer
+ * @param dev_name имя создаваемого экземпляра драйвера. По этому имени можно
  * найти этот экземпляр в реестре
  */
-#define DEVICE_GPIO_STM32_DEFINE(name, settings)                        \
-        static struct gpio_stm32_config gpio_stm32_cfg_## name = {      \
-                .user_settings = &settings,                             \
+#define DEVICE_GPIO_STM32_DEFINE(dev_name, settings)                        \
+        static struct gpio_stm32_config gpio_stm32_cfg_## dev_name = {      \
+                .user_settings = settings,                              \
         };                                                              \
                                                                         \
-        static struct gpio_stm32_data gpio_stm32_data_## name;          \
+        static struct gpio_stm32_data gpio_stm32_data_## dev_name;          \
                                                                         \
-        static const struct device device_gpio_stm32_## name = {        \
-                .name = #name,                                          \
-                .config = &(gpio_stm32_cfg_## name),                    \
+        static const struct device dev_name = {        \
+                .name = #dev_name,                                          \
+                .config = &(gpio_stm32_cfg_## dev_name),                    \
                 .api = &gpio_stm32_driver_api,                          \
-                .data &(gpio_stm32_data_## name)                        \
+                .data = &(gpio_stm32_data_## dev_name),                     \
         }                                                               \
 
 
@@ -95,7 +96,7 @@ struct gpio_stm32_settings {
  *
  * @param dev Структура, хранящая все внутрение данные
  */
-int gpio_stm32_init_driver(struct device* dev);
+int gpio_stm32_init_driver(const struct device* dev);
 
 /**
  * @}

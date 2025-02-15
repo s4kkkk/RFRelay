@@ -44,7 +44,7 @@ struct device {
  * @retval 0: Успешная регистрация
  * @retval -1: Ошибка: внутренний реестр устройств переполнен
  */
-int8_t device_register(struct device* dev);
+int8_t device_register(const struct device* dev);
 
 /**
  * @brief Функция для получения указателя на struct device по имени устройства
@@ -53,7 +53,7 @@ int8_t device_register(struct device* dev);
  *
  * @return Указатель на struct device или NULL, если устройство не найдено
  */
-struct device* device_get_by_name(const char* name);
+const struct device* device_get_by_name(const char* name);
 
 /**
  * @}

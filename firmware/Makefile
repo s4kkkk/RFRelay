@@ -31,7 +31,8 @@ firmware.elf: all
 firmware.bin: firmware.elf
 	$(OBJCOPY) -O binary $< $@
 
-
+SRCS := 
+OBJS :=
 include main/Makefile
 include kernel/Makefile
 include drivers/Makefile
