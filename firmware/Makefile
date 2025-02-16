@@ -10,9 +10,19 @@ CFLAGS += -I$(STMCUBE_MODULE_PATH)/Drivers/CMSIS/Device/ST/STM32F1xx/Include
 CFLAGS += -I$(CURDIR)/include
 CFLAGS += -Tstartup/STM32F103XB_FLASH.ld -nostdlib
 
-.PHONY: all clean upload startup
+.PHONY: all clean upload test
 
-all: startup
+OBJS :=
+
+include startup/Makefile
+include kernel/Makefile
+include drivers/Makefile
+include main/Makefile
+
+OBJS := $(addprefix objs/, $(OBJS))
+
+test:
+	@echo $(OBJS)
 
 clean:
 	rm -rf objs firmware.elf firmware.bin
@@ -20,19 +30,17 @@ clean:
 upload: firmware.bin
 	$(ST_FLASH) write $< 0x8000000
 
-startup: startup/startup_stm32f103xb.s startup/system_stm32f1xx.c
-	mkdir -p objs
-	$(CC) -c -o objs/startup_stm32f103xb.o startup/startup_stm32f103xb.s
-	$(CC) $(CFLAGS) -c -o objs/system_stm32f1xx.o startup/system_stm32f1xx.c
-
-firmware.elf: all
-	$(CC) $(CFLAGS) -o firmware.elf $(wildcard objs/*.o)
+firmware.elf: $(OBJS)
+	$(CC) $(CFLAGS) -o firmware.elf $^
 
 firmware.bin: firmware.elf
 	$(OBJCOPY) -O binary $< $@
 
-SRCS := 
-OBJS :=
-include main/Makefile
-include kernel/Makefile
-include drivers/Makefile
+objs/%.o: %.c
+	mkdir -p objs/$(dir $<)
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+objs/%.o: %.s
+	mkdir -p objs/$(dir $<)
+	$(CC) $(CFLAGS) -c -o $@ $<
+
