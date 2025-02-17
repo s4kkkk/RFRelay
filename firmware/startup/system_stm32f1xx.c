@@ -404,3 +404,8 @@ void SystemInit_ExtMemCtl(void)
 /**
   * @}
   */
+ 
+/**
+ * @brief stub
+ */
+void __libc_init_array(void) {}
