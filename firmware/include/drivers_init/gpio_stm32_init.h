@@ -79,13 +79,11 @@ struct gpio_stm32_settings {
                 .user_settings = settings,                              \
         };                                                              \
                                                                         \
-        static struct gpio_stm32_data gpio_stm32_data_## dev_name;          \
                                                                         \
         static const struct device dev_name = {        \
                 .name = #dev_name,                                          \
                 .config = &(gpio_stm32_cfg_## dev_name),                    \
                 .api = &gpio_stm32_driver_api,                          \
-                .data = &(gpio_stm32_data_## dev_name),                     \
         }                                                               \
 
 
