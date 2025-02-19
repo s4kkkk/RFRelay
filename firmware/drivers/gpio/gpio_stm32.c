@@ -5,18 +5,10 @@
  * @author Stanislav Timoshko <s4kkkk@mail.ru>
  */
 
-#include "drivers/gpio.h"
-#include "stm32f103xb.h"
+#include <drivers/gpio.h>
 #include <stm32f1xx.h>
 
 #include <drivers_init/gpio_stm32_init.h>
-
-static inline int gpio_init_clock()
-{
-        /* Необходимо включение тактирования APB2 */
-
-        return 0;
-}
 
 /**
  * @brief Инициализация драйвера
