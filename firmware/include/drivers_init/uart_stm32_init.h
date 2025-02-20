@@ -33,16 +33,38 @@ struct uart_stm32_config {
         USART_TypeDef* uart_regs;
 };
 
-enum uart_stm32_state {
-        INIT_STATE,
+enum uart_stm32_reciever_state {
+        RX_DISABLED,
+        RX_BUFFER_EMPTY,
+        RX_BUFFER_NOT_EMPTY,
 };
+
+enum uart_stm32_transiever_state {
+        TX_IDLE,
+        TX_TRANSMITTING,
+        TX_WAIT_TO_TXE,
+        TX_WAIT_TO_TC
+};
+
+#define BUFFER_LEN 32
 
 /**
  * @brief приватные данные драйвера
  */
 struct uart_stm32_data {
-        enum uart_stm32_state current_state;
+        /* RX */
+        enum uart_stm32_reciever_state current_rx_state;
+        char rx_buffer[BUFFER_LEN];
+
+        /* TX */
+        enum uart_stm32_transiever_state current_tx_state;
+
+        const uint8_t* current_tx_data;
+        size_t current_num_tx_bytes;
+        size_t current_tx_byte;
 };
+
+#undef BUFFER_LEN 
 
 /**
  * @name Публичный интерфейс драйвера uart_stm32
