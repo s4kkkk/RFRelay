@@ -23,7 +23,7 @@ struct uart_stm32_settings;
  * @brief Внутренняя конфигурация драйвера
  */
 struct uart_stm32_config {
-        /* uart_driver_config должен быть первым */
+        /* uart_config должен быть первым */
         struct uart_config common;
 
         /* Пользовательские настройки */
@@ -67,6 +67,13 @@ struct uart_stm32_settings {
          * ...
          */
         uint8_t uart_controller_num;
+
+        /**
+         * Установленная частота тактирования для используемого
+         * контроллера в Гц. Настройку тактирования должен
+         * выполнять пользовательский код
+         */
+        uint32_t uart_controller_clk;
 };
 
 /**

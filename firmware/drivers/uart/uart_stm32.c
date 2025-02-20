@@ -101,3 +101,90 @@ int uart_stm32_init_driver(const struct device *dev)
 
         return 0;
 }
+
+static int stm32_uart_configure(const struct device* dev,
+                          const struct uart_config* config)
+{
+        struct uart_stm32_config* inner_config = 
+                (struct uart_stm32_config* ) dev->config;
+        inner_config->common = *config;
+
+        /* Включение UART */
+        inner_config->uart_regs->CR1 |= USART_CR1_UE;
+
+        /* Установка размера пакета */
+        switch (inner_config->common.character_bits) {
+                case UART_CONFIG_CHARACTER_BITS_8:
+                        inner_config->uart_regs->CR1 &=
+                                ~(USART_CR1_M);
+                        break;
+                case UART_CONFIG_CHARACTER_BITS_9:
+                        inner_config->uart_regs->CR1 |=
+                                USART_CR1_M;
+                        break;
+                default:
+                        break;
+        }
+
+        /* Установка кол-ва стоп-битов */
+        inner_config->uart_regs->CR2 &= ~(USART_CR2_STOP_Msk);
+        switch (inner_config->common.stop_bits) {
+                case UART_CONFIG_STOP_BITS_0_5:
+                        inner_config->uart_regs->CR2 |= 
+                                (0b01<<USART_CR2_STOP_Pos);
+                        break;
+
+                case UART_CONFIG_STOP_BITS_1_5:
+                        inner_config->uart_regs->CR2 |=
+                                (0b11<<USART_CR2_STOP_Pos);
+                        break;
+                case UART_CONFIG_STOP_BITS_2:
+                        inner_config->uart_regs->CR2 |=
+                                (0b10<<USART_CR2_STOP_Pos);
+                        break;
+                default:
+                        break;
+        }
+
+        /* Установка бодрейта */
+        uint32_t usart_clk = inner_config->user_settings->uart_controller_clk;
+        if (usart_clk == 0)
+                return -1;
+
+        return 0;
+}
+
+static int stm32_uart_rx_enable(const struct device* dev)
+{
+        return 0;
+}
+
+static int stm32_uart_rx_disable(const struct device* dev)
+{
+        return 0;
+}
+
+static uint8_t stm32_uart_is_data_available(const struct device* dev)
+{
+        return 0;
+}
+
+static size_t stm32_uart_rx(const struct device* dev, void* buffer, size_t len)
+{
+        return 0;
+}
+
+static uint8_t stm32_uart_is_transmitter_ready(const struct device* dev)
+{
+        return 0;
+}
+
+static int stm32_uart_tx(const struct device* dev, const void* buffer, size_t len)
+{
+        return 0;
+}
+
+int uart_stm32_driver_process(const struct device* dev)
+{
+        return 0;
+}
