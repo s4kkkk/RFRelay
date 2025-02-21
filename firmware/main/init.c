@@ -8,7 +8,7 @@
 #include "init.h"
 #include "device.h"
 #include "drivers/gpio.h"
-#include <drivers_init/gpio_stm32_init.h>
+#include <drivers/gpio/gpio_stm32f103cx.h>
 
 static const struct gpio_stm32_settings gpioa_settings = {
         .port = 0

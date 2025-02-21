@@ -11,7 +11,7 @@
 #include <drivers/uart.h>
 #include <stm32f1xx.h>
 
-#include <drivers_init/uart_stm32_init.h>
+#include <drivers/uart/uart_stm32f103cx.h>
 
 /**
  * @brief Настройка состояния GPIO-выводов

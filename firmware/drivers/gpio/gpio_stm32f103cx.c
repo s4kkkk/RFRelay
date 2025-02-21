@@ -8,7 +8,7 @@
 #include <drivers/gpio.h>
 #include <stm32f1xx.h>
 
-#include <drivers_init/gpio_stm32_init.h>
+#include <drivers/gpio/gpio_stm32f103cx.h>
 
 /**
  * @brief Инициализация драйвера
