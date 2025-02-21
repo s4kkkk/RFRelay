@@ -35,8 +35,8 @@ struct uart_stm32_config {
 
 enum uart_stm32_reciever_state {
         RX_DISABLED,
-        RX_BUFFER_EMPTY,
-        RX_BUFFER_NOT_EMPTY,
+        RX_WAIT_FOR_READ,
+        RX_RECIEVING,
 };
 
 enum uart_stm32_transiever_state {
@@ -53,15 +53,19 @@ enum uart_stm32_transiever_state {
  */
 struct uart_stm32_data {
         /* RX */
-        enum uart_stm32_reciever_state current_rx_state;
-        char rx_buffer[BUFFER_LEN];
+        enum uart_stm32_reciever_state rx_state;
+        uint8_t* rx_buffer;
+        size_t rx_buffer_size;
+        size_t rx_buffer_cur_byte;
 
         /* TX */
-        enum uart_stm32_transiever_state current_tx_state;
-
-        const uint8_t* current_tx_data;
-        size_t current_num_tx_bytes;
-        size_t current_tx_byte;
+        enum uart_stm32_transiever_state tx_state;
+        /* Передаваемый буфер */
+        const uint8_t* tx_data;
+        /* Размер передаваемого буфера */
+        size_t tx_data_len;
+        /* Текущий передаваемый байт из буфера */
+        size_t tx_data_cur_byte;
 };
 
 #undef BUFFER_LEN 

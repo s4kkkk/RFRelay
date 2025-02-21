@@ -81,6 +81,8 @@ static inline void init_pins_state(const struct device* dev)
 int uart_stm32_init_driver(const struct device *dev)
 {
         struct uart_stm32_config* config = (struct uart_stm32_config* ) dev->config;
+        struct uart_stm32_data* data =
+                (struct uart_stm32_data* ) dev->data;
 
         switch (config->user_settings->uart_controller_num) {
 
@@ -99,6 +101,9 @@ int uart_stm32_init_driver(const struct device *dev)
         }
 
         init_pins_state(dev);
+
+        data->rx_state = RX_DISABLED;
+        data->tx_state = TX_IDLE;
 
         return 0;
 }
@@ -200,12 +205,32 @@ static int stm32_uart_configure(const struct device* dev,
         return 0;
 }
 
+static int stm32_uart_set_rx_buffer(const struct device* dev,
+                                    uint8_t* buffer,
+                                    size_t len)
+{
+        struct uart_stm32_data* data =
+                (struct uart_stm32_data* ) dev->data;
+
+        if ( (buffer == NULL) || len == 0)
+                return -1;
+
+        data->rx_buffer = buffer;
+        data->rx_buffer_size = len;
+        data->rx_buffer_cur_byte = 0;
+
+        return 0;
+}
+
 static int stm32_uart_rx_enable(const struct device* dev)
 {
         struct uart_stm32_config* inner_config = 
                 (struct uart_stm32_config* ) dev->config;
+        struct uart_stm32_data* data =
+                (struct uart_stm32_data* ) dev->data;
 
         inner_config->uart_regs->CR1 |= USART_CR1_RE;
+        data->rx_state = RX_RECIEVING;
         return 0;
 }
 
@@ -213,8 +238,11 @@ static int stm32_uart_rx_disable(const struct device* dev)
 {
         struct uart_stm32_config* inner_config = 
                 (struct uart_stm32_config* ) dev->config;
+        struct uart_stm32_data* data =
+                (struct uart_stm32_data* ) dev->data;
 
         inner_config->uart_regs->CR1 &= ~(USART_CR1_RE);
+        data->rx_state = RX_DISABLED;
         return 0;
 }
 
@@ -225,7 +253,24 @@ static uint8_t stm32_uart_is_data_available(const struct device* dev)
 
 static size_t stm32_uart_rx(const struct device* dev, void* buffer, size_t len)
 {
-        return 0;
+        struct uart_stm32_data* data =
+                (struct uart_stm32_data* ) dev->data;
+
+        size_t readed = 0;
+
+        if (data->rx_buffer_cur_byte != 0) {
+                /* считанные байты есть */
+                for (size_t i = 0; i < data->rx_buffer_cur_byte; i++) {
+                        if (i >= len)
+                                break;
+                        ((uint8_t *) buffer)[i] = data->rx_buffer[i];
+                        readed ++;
+                }
+
+                data->rx_buffer_cur_byte = 0;
+                data->rx_state = RX_RECIEVING;
+        }
+        return readed;
 }
 
 static uint8_t stm32_uart_is_transmitter_ready(const struct device* dev)
@@ -243,14 +288,10 @@ static int stm32_uart_tx(const struct device* dev, const void* buffer, size_t le
         if ( (buffer == NULL) && (len == 0) )
                 return -1;
         
-        data->current_tx_data = buffer;
-        data->current_num_tx_bytes = len;
-        data->current_tx_byte = 0;
-        data->current_tx_state = TX_TRANSMITTING;
-
-        if (config->common.io_flags & UART_O_BLOCK) {
-                while (!uart_stm32_driver_process(dev));
-        }
+        data->tx_data = buffer;
+        data->tx_data_len = len;
+        data->tx_data_cur_byte = 0;
+        data->tx_state = TX_TRANSMITTING;
 
         return 0;
 }
@@ -262,6 +303,35 @@ static int stm32_uart_tx_abort(const struct device* dev)
 
 static inline int process_reciever(const struct device* dev)
 {
+        struct uart_stm32_data* data =
+                (struct uart_stm32_data* ) dev->data;
+        struct uart_stm32_config* config = 
+                (struct uart_stm32_config* ) dev->config;
+
+        switch (data->rx_state) {
+                case RX_DISABLED:
+                        return 1;
+
+                case RX_WAIT_FOR_READ:
+                        return 1;
+
+                case RX_RECIEVING: {
+                        if (data->rx_buffer_cur_byte >= data->rx_buffer_size) {
+                                /* заполнили весь буфер */
+                                data->rx_state = RX_WAIT_FOR_READ;
+                                return 1;
+                        }
+
+                        if (config->uart_regs->SR & USART_SR_RXNE) {
+                                /* Приняли байт */
+                                data->rx_buffer[data->rx_buffer_cur_byte] = 
+                                        config->uart_regs->DR;
+                                data->rx_buffer_cur_byte++;
+                        }
+                        return 0;
+                }
+        }
+
         return 0;
 }
 
@@ -272,36 +342,36 @@ static inline int process_transiever(const struct device* dev)
         struct uart_stm32_config* config = 
                 (struct uart_stm32_config* ) dev->config;
 
-        switch (data->current_tx_state) {
+        switch (data->tx_state) {
                 case TX_IDLE:
                         return 1;
 
                 case TX_TRANSMITTING: {
-                        if (data->current_tx_byte >= data->current_num_tx_bytes) {
-                                data->current_tx_state = TX_WAIT_TO_TC;
+                        if (data->tx_data_cur_byte >= data->tx_data_len) {
+                                data->tx_state = TX_WAIT_TO_TC;
                                 return 0;
                         }
                         uint8_t byte_to_tx = 
-                                data->current_tx_data[data->current_tx_byte];
-                        data->current_tx_byte++;
+                                data->tx_data[data->tx_data_cur_byte];
+                        data->tx_data_cur_byte++;
 
                         config->uart_regs->CR1 |= USART_CR1_TE;
                         config->uart_regs->DR = byte_to_tx;
 
-                        data->current_tx_state = TX_WAIT_TO_TXE;
+                        data->tx_state = TX_WAIT_TO_TXE;
                         return 0;
                 }
 
                 case TX_WAIT_TO_TXE: {
                         if (config->uart_regs->SR & USART_SR_TXE_Msk)
-                                data->current_tx_state = TX_TRANSMITTING;
+                                data->tx_state = TX_TRANSMITTING;
                         return 0;
                 }
 
                 case TX_WAIT_TO_TC : {
                         if (config->uart_regs->SR & USART_SR_TC_Msk) {
                                 /* Передача завершена */
-                                data->current_tx_state = TX_IDLE;
+                                data->tx_state = TX_IDLE;
                                 config->uart_regs->CR1 &= ~(USART_CR1_TE);
                         }
                         return 0;

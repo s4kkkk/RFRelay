@@ -24,12 +24,6 @@
  * @{
  */
 
-/** @brief Режим неблокирующего ввода-вывода */
-#define UART_O_NONBLOCK (0 << 0)
-
-/** @brief Режим блокирующего ввода-вывода */
-#define UART_O_BLOCK (1 << 0)
-
 /** @} */
 
 /** @brief Размер кадра данных */
@@ -87,6 +81,19 @@ struct uart_driver_api {
                                const struct uart_config* config);
 
         /**
+         * @brief Установить буфер приема
+         * @param dev uart-контроллер
+         * @param buffer - указатель на буфер приема
+         * @param len длина буфера
+         *
+         * @retval 0: Успех
+         * @reval -1: Внутренняя ошибка
+         */
+        int (*uart_set_rx_buffer) (const struct device* dev,
+                                   uint8_t* buffer,
+                                   size_t len);
+
+        /**
          * @brief Включить приемник
          *
          * @retval 0: Успешно
@@ -142,9 +149,31 @@ struct uart_driver_api {
          * @retval -1: Внутренняя ошибка
          */
         int (*uart_tx_abort) (const struct device* dev);
+
 };
 
 /** @} */
+
+/**
+ * @brief Установить буфер приема
+ * @param dev uart-контроллер
+ * @param buffer - указатель на буфер приема
+ * @param len длина буфера
+ *
+ * @retval 0: Успех
+ * @reval -1: Внутренняя ошибка
+ */
+static inline int uart_set_rx_buffer(const struct device* dev,
+                                     uint8_t* buffer,
+                                     size_t len)
+{
+        struct uart_driver_api* api = (struct uart_driver_api* ) dev->api;
+
+        if (api->uart_set_rx_buffer == NULL) {
+                return -1;
+        }
+        return api->uart_set_rx_buffer(dev, buffer, len);
+}
 
 /**
  * @brief Выполняет конфигурирование uart-контроллера
