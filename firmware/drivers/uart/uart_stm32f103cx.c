@@ -103,7 +103,9 @@ int uart_stm32_init_driver(const struct device *dev)
         init_pins_state(dev);
 
         data->rx_state = RX_DISABLED;
+        data->rx_state_flags = 0;
         data->tx_state = TX_IDLE;
+        data->tx_state_flags = 0;
 
         return 0;
 }
@@ -224,30 +226,34 @@ static int stm32_uart_set_rx_buffer(const struct device* dev,
 
 static int stm32_uart_rx_enable(const struct device* dev)
 {
-        struct uart_stm32_config* inner_config = 
-                (struct uart_stm32_config* ) dev->config;
         struct uart_stm32_data* data =
                 (struct uart_stm32_data* ) dev->data;
 
-        inner_config->uart_regs->CR1 |= USART_CR1_RE;
-        data->rx_state = RX_RECIEVING;
+        data->rx_state_flags |= RX_ENABLE;
         return 0;
 }
 
 static int stm32_uart_rx_disable(const struct device* dev)
 {
-        struct uart_stm32_config* inner_config = 
-                (struct uart_stm32_config* ) dev->config;
         struct uart_stm32_data* data =
                 (struct uart_stm32_data* ) dev->data;
 
-        inner_config->uart_regs->CR1 &= ~(USART_CR1_RE);
-        data->rx_state = RX_DISABLED;
+        data->rx_state_flags |= RX_DISABLE;
         return 0;
 }
 
+static int process_reciever(const struct device* dev);
+
 static uint8_t stm32_uart_is_data_available(const struct device* dev)
 {
+        struct uart_stm32_data* data =
+                (struct uart_stm32_data* ) dev->data;
+
+        process_reciever(dev);
+
+        if (data->rx_buffer_cur_byte != 0) {
+                return 1;
+        }
         return 0;
 }
 
@@ -268,20 +274,42 @@ static size_t stm32_uart_rx(const struct device* dev, void* buffer, size_t len)
                 }
 
                 data->rx_buffer_cur_byte = 0;
-                data->rx_state = RX_RECIEVING;
+                data->rx_state_flags |= RX_READED;
         }
         return readed;
 }
 
+static uint8_t stm32_uart_tx_enable(const struct device* dev)
+{
+        struct uart_stm32_config* config = 
+                (struct uart_stm32_config* ) dev->config;
+
+        config->uart_regs->CR1 |= (USART_CR1_TE);
+        return 0;
+}
+
+static uint8_t stm32_uart_tx_disable(const struct device* dev)
+{
+        struct uart_stm32_config* config = 
+                (struct uart_stm32_config* ) dev->config;
+
+        config->uart_regs->CR1 &= ~(USART_CR1_TE);
+        return 0;
+}
+
 static uint8_t stm32_uart_is_transmitter_ready(const struct device* dev)
 {
+        struct uart_stm32_data* data =
+                (struct uart_stm32_data* ) dev->data;
+
+        if (data->tx_state == TX_IDLE) {
+                return 1;
+        }
         return 0;
 }
 
 static int stm32_uart_tx(const struct device* dev, const void* buffer, size_t len)
 {
-        struct uart_stm32_config* config = 
-                (struct uart_stm32_config* ) dev->config;
         struct uart_stm32_data* data =
                 (struct uart_stm32_data* ) dev->data;
         
@@ -291,28 +319,62 @@ static int stm32_uart_tx(const struct device* dev, const void* buffer, size_t le
         data->tx_data = buffer;
         data->tx_data_len = len;
         data->tx_data_cur_byte = 0;
-        data->tx_state = TX_TRANSMITTING;
+        data->tx_state_flags |= TX_START_TRANSMISSION;
 
+        return 0;
+}
+
+static int process_transiever(const struct device* dev);
+
+static int stm32_wait_for_tx_complete(const struct device* dev)
+{
+        while(!process_transiever(dev));
         return 0;
 }
 
 static int stm32_uart_tx_abort(const struct device* dev)
 {
+        struct uart_stm32_data* data =
+                (struct uart_stm32_data* ) dev->data;
+
+        data->tx_state_flags |= TX_ABORTED;
+
         return 0;
 }
 
-static inline int process_reciever(const struct device* dev)
+static int process_reciever(const struct device* dev)
 {
         struct uart_stm32_data* data =
                 (struct uart_stm32_data* ) dev->data;
         struct uart_stm32_config* config = 
                 (struct uart_stm32_config* ) dev->config;
 
+        /* проверка флагов для всех состояний */
+        if (data->tx_state_flags & RX_DISABLE) {
+                /* сбросить все флаги */
+                data->rx_state_flags  = 0;
+                data->rx_state = RX_DISABLED;
+
+                config->uart_regs->CR1 &= ~(USART_CR1_RE);
+                return 1;
+        }
+
         switch (data->rx_state) {
                 case RX_DISABLED:
+                        if (data->rx_state_flags & RX_ENABLE) {
+                                data->rx_state_flags &= ~(RX_ENABLE);
+                                data->rx_state = RX_RECIEVING;
+
+                                config->uart_regs->CR1 |= USART_CR1_RE;
+                                return 0;
+                        }
                         return 1;
 
                 case RX_WAIT_FOR_READ:
+                        if (data->rx_state_flags & RX_READED) {
+                                data->rx_state_flags &= ~(RX_READED);
+                                data->rx_state = RX_RECIEVING;
+                        }
                         return 1;
 
                 case RX_RECIEVING: {
@@ -335,7 +397,7 @@ static inline int process_reciever(const struct device* dev)
         return 0;
 }
 
-static inline int process_transiever(const struct device* dev)
+static int process_transiever(const struct device* dev)
 {
         struct uart_stm32_data* data =
                 (struct uart_stm32_data* ) dev->data;
@@ -344,9 +406,18 @@ static inline int process_transiever(const struct device* dev)
 
         switch (data->tx_state) {
                 case TX_IDLE:
+                        if (data->tx_state_flags & TX_START_TRANSMISSION) {
+                                data->tx_state_flags &= ~(TX_START_TRANSMISSION);
+                                data->tx_state = TX_TRANSMITTING;
+                                return 0;
+                        }
                         return 1;
 
                 case TX_TRANSMITTING: {
+                        if (data->tx_state_flags & TX_ABORTED) {
+                                data->tx_state_flags = 0;
+                                data->tx_state = TX_IDLE;
+                        }
                         if (data->tx_data_cur_byte >= data->tx_data_len) {
                                 data->tx_state = TX_WAIT_TO_TC;
                                 return 0;
@@ -355,7 +426,6 @@ static inline int process_transiever(const struct device* dev)
                                 data->tx_data[data->tx_data_cur_byte];
                         data->tx_data_cur_byte++;
 
-                        config->uart_regs->CR1 |= USART_CR1_TE;
                         config->uart_regs->DR = byte_to_tx;
 
                         data->tx_state = TX_WAIT_TO_TXE;
@@ -368,18 +438,36 @@ static inline int process_transiever(const struct device* dev)
                         return 0;
                 }
 
-                case TX_WAIT_TO_TC : {
+                case TX_WAIT_TO_TC: {
                         if (config->uart_regs->SR & USART_SR_TC_Msk) {
                                 /* Передача завершена */
                                 data->tx_state = TX_IDLE;
-                                config->uart_regs->CR1 &= ~(USART_CR1_TE);
                         }
                         return 0;
                 }       
         }
+        return 0;
 }
 
 int uart_stm32_driver_process(const struct device* dev)
 {
-        return process_reciever(dev) && process_transiever(dev);
+        int ret1 = process_reciever(dev);
+        int ret2 = process_transiever(dev);
+
+        return (ret1 && ret2) ? 1: 0;
 }
+
+const struct uart_driver_api uart_stm32_driver_api = {
+        .uart_configure = stm32_uart_configure,
+        .uart_set_rx_buffer = stm32_uart_set_rx_buffer,
+        .uart_rx_enable = stm32_uart_rx_enable,
+        .uart_rx_disable = stm32_uart_rx_disable,
+        .uart_is_data_available = stm32_uart_is_data_available,
+        .uart_rx = stm32_uart_rx,
+        .uart_tx_enable = stm32_uart_tx_enable,
+        .uart_tx_disable = stm32_uart_tx_disable,
+        .uart_is_transmitter_ready = stm32_uart_is_transmitter_ready,
+        .uart_tx = stm32_uart_tx,
+        .uart_wait_for_tx_complete = stm32_wait_for_tx_complete,
+        .uart_tx_abort = stm32_uart_tx_abort
+};

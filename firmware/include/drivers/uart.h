@@ -56,9 +56,6 @@ struct uart_config {
 
         /** @brief Кол-во стоп-битов */
         enum uart_config_stop_bits stop_bits;
-
-        /** @brief флаги настроек ввода-вывода */
-        uint8_t io_flags;
 };
 
 /**
@@ -126,6 +123,22 @@ struct uart_driver_api {
         size_t (*uart_rx) (const struct device* dev, void* buffer, size_t len);
 
         /**
+         * @brief Включить передатчик
+         *
+         * @retval 0: Успешно
+         * @retval -1: Внутренняя ошибка
+         */
+        uint8_t (*uart_tx_enable) (const struct device* dev);
+
+        /**
+         * @brief Выключить передатчик
+         *
+         * @retval 0: Успешно
+         * @retval -1: Внутренняя ошибка
+         */
+        uint8_t (*uart_tx_disable) (const struct device* dev);
+
+        /**
          * @brief Проверяет, готов ли контроллер к передаче
          * 
          * @retval 0: Передатчик занят
@@ -141,6 +154,14 @@ struct uart_driver_api {
          * @retval -1: Внутренняя ошибка
          */
         int (*uart_tx) (const struct device* dev, const void* buffer, size_t len);
+
+        /**
+         * @brief ожидать завершение передачи 
+         *
+         * @retval 0: Передача завершена
+         * @retval 1: Во время передачи произошла ошибка
+         */
+        int (*uart_wait_for_tx_complete) (const struct device* dev);
 
         /**
          * @brief Прервать текущую передачу
@@ -259,6 +280,38 @@ static inline size_t uart_rx(const struct device* dev, void* buffer, size_t len)
 }
 
 /**
+ * @brief Включить передатчик
+ *
+ * @retval 0: Успешно
+ * @retval -1: Внутренняя ошибка
+ */
+static inline uint8_t uart_tx_enable(const struct device* dev)
+{
+        struct uart_driver_api* api = (struct uart_driver_api* ) dev->api;
+
+        if (api->uart_tx_enable == NULL) {
+                return -1;
+        }
+        return api->uart_tx_enable(dev);
+}
+
+/**
+ * @brief Выключить передатчик
+ *
+ * @retval 0: Успешно
+ * @retval -1: Внутренняя ошибка
+ */
+static inline uint8_t uart_tx_disable(const struct device* dev)
+{
+        struct uart_driver_api* api = (struct uart_driver_api* ) dev->api;
+
+        if (api->uart_tx_disable == NULL) {
+                return -1;
+        }
+        return api->uart_tx_disable(dev);
+}
+
+/**
  * @brief Проверяет, готов ли контроллер к передаче
  * 
  * @retval 0: Передатчик занят
@@ -289,6 +342,17 @@ static inline int uart_tx(const struct device* dev, const void* buffer, size_t l
                 return -1;
         }
         return api->uart_tx(dev, buffer, len);
+}
+
+static inline int uart_wait_for_tx_complete(const struct device* dev)
+{
+        struct uart_driver_api* api = (struct uart_driver_api* ) dev->api;
+
+        if (api->uart_wait_for_tx_complete == NULL) {
+                return -1;
+        }
+        return api->uart_wait_for_tx_complete(dev);
+
 }
 
 /**

@@ -51,15 +51,30 @@ enum uart_stm32_transiever_state {
 /**
  * @brief приватные данные драйвера
  */
+
+#define RX_READED (0b1 << 0)
+#define RX_DISABLE (0b1 << 1)
+#define RX_ENABLE (0b1 << 2)
+
+#define TX_START_TRANSMISSION (0b1 << 0)
+#define TX_ABORTED (0b1 << 1)
+
 struct uart_stm32_data {
         /* RX */
         enum uart_stm32_reciever_state rx_state;
+        /* Флаги состояний */
+        uint8_t rx_state_flags;
+        /* Буфер приема */
         uint8_t* rx_buffer;
+        /* Размер буфеа приема */
         size_t rx_buffer_size;
+        /* Текущий передаваемый байт */
         size_t rx_buffer_cur_byte;
 
         /* TX */
         enum uart_stm32_transiever_state tx_state;
+        /* Флаги состояний */
+        uint8_t tx_state_flags;
         /* Передаваемый буфер */
         const uint8_t* tx_data;
         /* Размер передаваемого буфера */
@@ -69,6 +84,8 @@ struct uart_stm32_data {
 };
 
 #undef BUFFER_LEN 
+
+extern const struct uart_driver_api uart_stm32_driver_api;
 
 /**
  * @name Публичный интерфейс драйвера uart_stm32
@@ -102,6 +119,25 @@ struct uart_stm32_settings {
         uint32_t uart_controller_clk;
 };
 
+/**
+ * @brief Создание экземпляра драйвера. Создание структуры device
+ * @hideinitializer
+ * @param dev_name имя создаваемого экземпляра устройства
+ * @param settings указатель на структуру типа uart_stm32_settings
+ */
+#define DEVICE_UART_STM32_DEFINE(dev_name, settings)                    \
+        static struct uart_stm32_config uart_stm32_cfg_## dev_name = {  \
+                .user_settings = settings,                              \
+        };                                                              \
+                                                                        \
+        static struct uart_stm32_data uart_stm32_data_## dev_name ;     \
+                                                                        \
+        static const struct device dev_name = {                         \
+                .name = #dev_name,                                      \
+                .config = &(uart_stm32_cfg_## dev_name),                \
+                .api = &(uart_stm32_driver_api),                        \
+                .data = &(uart_stm32_data_## dev_name),                 \
+        };                                                              \
 /**
  * @brief Конфигурирование драйвера
  *
