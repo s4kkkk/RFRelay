@@ -15,7 +15,7 @@
 #include <stm32f1xx.h>
 
 #include <device.h>
-#include <drivers/gpio.h>
+#include <drivers/gpio/gpio.h>
 
 
 struct gpio_stm32_settings;

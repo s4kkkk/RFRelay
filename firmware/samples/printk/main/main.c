@@ -1,7 +1,7 @@
 #include <device.h>
 #include <printk.h>
-#include <drivers/gpio.h>
-#include <drivers/uart.h>
+#include <drivers/gpio/gpio.h>
+#include <drivers/uart/uart.h>
 #include <drivers/uart/uart_stm32f103cx.h>
 #include <stdint.h>
 

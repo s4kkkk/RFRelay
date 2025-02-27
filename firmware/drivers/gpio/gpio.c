@@ -5,7 +5,7 @@
  * @author Stanislav Timoshko <s4kkkk@mail.ru>
  */
 
-#include <drivers/gpio.h>
+#include <drivers/gpio/gpio.h>
 
 int gpio_pin_configure(const struct device* port,
                                      gpio_pin_t pin,

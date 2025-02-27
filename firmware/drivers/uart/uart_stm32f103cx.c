@@ -8,7 +8,7 @@
 #include <math.h>
 
 #include "stm32f103xb.h"
-#include <drivers/uart.h>
+#include <drivers/uart/uart.h>
 #include <stm32f1xx.h>
 
 #include <drivers/uart/uart_stm32f103cx.h>

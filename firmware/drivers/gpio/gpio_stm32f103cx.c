@@ -5,7 +5,7 @@
  * @author Stanislav Timoshko <s4kkkk@mail.ru>
  */
 
-#include <drivers/gpio.h>
+#include <drivers/gpio/gpio.h>
 #include <stm32f1xx.h>
 
 #include <drivers/gpio/gpio_stm32f103cx.h>

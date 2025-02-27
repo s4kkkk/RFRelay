@@ -10,7 +10,7 @@
 #include <string.h>
 #include <stdarg.h>
 
-#include <drivers/uart.h>
+#include <drivers/uart/uart.h>
 
 #define PRINTK_BUFFER_LEN 64
 

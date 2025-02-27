@@ -15,7 +15,7 @@
 #include <stm32f1xx.h>
 
 #include <device.h>
-#include <drivers/uart.h>
+#include <drivers/uart/uart.h>
 
 struct uart_stm32_settings;
 
