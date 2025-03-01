@@ -64,7 +64,7 @@ struct nrf24l01_soft_driver_settings {
  * @brief Создание экземпляра драйвера. Создание структуры device
  * @hideinitializer
  * @param dev_name имя создаваемого экземпляра устройства
- * @param settings указатель на настройки драйвера
+ * @param settings указатель на настройки драйвера (структура nrf24l01_soft_driver_settings)
  */
 #define DEVICE_NRF24L01_SOFT_DRIVER_DEFINE(dev_name, settings)                  \
         static struct nrf24l01_soft_driver_config nrf24l01_cfg_## dev_name = {  \

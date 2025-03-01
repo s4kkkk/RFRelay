@@ -9,10 +9,54 @@
 
 #include <stdint.h>
 
+#include "drivers/gpio/gpio.h"
 #include "drivers/modules/nrf24l01/nrf24l01.h"
 #include "nrf24.h"
 
 extern const struct device* nrf24l01_soft_driver_instance;
+
+static inline void configure_gpio_pins(const struct device* dev)
+{
+        struct nrf24l01_soft_driver_config* config = 
+                (struct nrf24l01_soft_driver_config* ) dev->config;
+
+        /* CE output */
+        gpio_pin_configure(
+                config->user_settings->gpio_controller,
+                config->user_settings->pins.ce_pin,
+                GPIO_OUTPUT
+        );
+
+        /* CS output */
+        gpio_pin_configure(
+                config->user_settings->gpio_controller,
+                config->user_settings->pins.cs_pin,
+                GPIO_OUTPUT
+        );
+
+        /* SCK output */
+        gpio_pin_configure(
+                config->user_settings->gpio_controller,
+                config->user_settings->pins.sck_pin,
+                GPIO_OUTPUT
+        );
+
+        /* MOSI output */
+        gpio_pin_configure(
+                config->user_settings->gpio_controller,
+                config->user_settings->pins.mosi_pin,
+                GPIO_OUTPUT
+        );
+
+        /* MISO input */
+        gpio_pin_configure(
+                config->user_settings->gpio_controller,
+                config->user_settings->pins.miso_pin,
+                GPIO_INPUT
+        );
+
+        return;
+}
 
 int8_t nrf24l01_soft_driver_init(const struct device* dev)
 {
@@ -21,6 +65,7 @@ int8_t nrf24l01_soft_driver_init(const struct device* dev)
 
         nrf24l01_soft_driver_instance = dev;
 
+        configure_gpio_pins(dev);
         nrf24_init();
         nrf24_config(data->channel, data->payload_len);
 
