@@ -73,7 +73,7 @@ struct nrf24l01_soft_driver_settings {
                                                                                 \
         static struct nrf24l01_soft_driver_data nrf24l01_data_## dev_name = {   \
                 .payload_len = 1,                                               \
-                .channel - 1,                                                   \
+                .channel = 1,                                                   \
         };                                                                      \
                                                                                 \
         static const struct device dev_name = {                                 \
@@ -81,7 +81,7 @@ struct nrf24l01_soft_driver_settings {
                 .config = &(nrf24l01_cfg_## dev_name),                          \
                 .api = &(nrf24l01_soft_driver_api),                             \
                 .data = &(nrf24l01_data_## dev_name),                           \
-        };                                                                      \
+        }                                                                       \
 
 /**
  * @brief инициализация драйвера
