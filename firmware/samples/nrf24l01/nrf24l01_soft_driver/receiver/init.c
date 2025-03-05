@@ -113,11 +113,10 @@ static inline int init_stage1()
         if (ret != 0)
                 return -1;
 
-        uint8_t rx_mac_addr[5] = {0xD7, 0xD7, 0xD7, 0xD7, 0xD7};
         uint8_t tx_mac_addr[5] = {0xE7, 0xE7, 0xE7, 0xE7, 0xE7};
 
 
-        ret = nrf24l01_set_rx_addr(dev, rx_mac_addr);
+        ret = nrf24l01_set_rx_addr(dev, tx_mac_addr);
         if (ret != 0)
                 return -1;
         ret = nrf24l01_set_tx_addr(dev, tx_mac_addr);
