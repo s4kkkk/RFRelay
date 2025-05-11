@@ -1,0 +1,1 @@
+include drivers/modules/nrf24l01/nrf24l01_soft_driver/Makefile
