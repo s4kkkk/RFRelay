@@ -4,7 +4,7 @@ CompileFlags:
         -I/usr/lib/gcc/arm-none-eabi/14.2.0/include,
         -I/usr/arm-none-eabi/STM32CubeF1/Drivers/CMSIS/Core/Include,
         -I/usr/arm-none-eabi/STM32CubeF1/Drivers/CMSIS/Device/ST/STM32F1xx/Include,
-        -I/home/s4kkkk/Other/RFRelay/firmware/include,
+        -I/home/s4kkkk/Other/RFRelay/UU/firmware/include,
         --target=thumbv7m-none-none-eabi,
         -mcpu=cortex-m3, 
         -DSTM32F103xB] 
