@@ -114,4 +114,4 @@ int8_t packet_validate_checksum(const struct rp_packet* packet);
  */
 int8_t packet_insert_checksum(struct rp_packet* packet);
 
-#endif
+#endif // PACKETS_H
