@@ -218,6 +218,13 @@ void main_uu_fsm_work(struct main_uu_data_t* main_uu_data)
                         break;
                 }
 
+                case WAIT_TO_TX_END: {
+                        if (!nrf24l01_is_sending(main_uu_data->radio_nrf)) {
+                                main_uu_data->state = STANDBY;
+                        }
+                        break;
+                }
+
         }
         return;
 }
