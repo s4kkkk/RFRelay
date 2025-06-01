@@ -23,7 +23,7 @@ void SysTick_Handler(void)
 void systick_init(void)
 {
         /* Сколько отсчетов в таймер. -1 по reference manual */
-        SysTick->LOAD = SYSTICK_CLOCK/1000 - 1;
+        SysTick->LOAD = CONFIG_SYSTICK_CLOCK/1000 - 1;
         
         /* Включить прерывание по достижению нуля */
         SysTick->CTRL |= SysTick_CTRL_TICKINT_Msk;

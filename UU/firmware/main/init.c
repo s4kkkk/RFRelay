@@ -27,6 +27,12 @@ static const struct gpio_stm32_settings gpio_radio_settings = {
 };
 DEVICE_GPIO_STM32_DEFINE(gpio_radio, &gpio_radio_settings);
 
+static const struct gpio_stm32_settings gpio_opto_settings = {
+        .port = CONFIG_GPIO_OPTO_CONTROLLER_NUM,
+};
+DEVICE_GPIO_STM32_DEFINE(gpio_opto, &gpio_opto_settings);
+
+
 static const struct nrf24l01_soft_driver_settings nrf24l01_settings = {
         .gpio_controller = &gpio_radio,
         .pins = {
@@ -67,6 +73,14 @@ static inline int init_stage0()
         ret = device_register(&gpio_radio);
         if (ret != 0)
                 return -1;
+
+        ret = gpio_stm32_init_driver(&gpio_opto);
+        if (ret != 0)
+                return -1;
+        ret = device_register(&gpio_opto);
+        if (ret != 0)
+                return -1;
+
 
         ret = nrf24l01_soft_driver_init(&nrf24l01_1);
         if (ret != 0)
