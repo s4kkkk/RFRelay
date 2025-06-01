@@ -14,6 +14,7 @@
 #include <drivers/uart/uart_stm32f103cx.h>
 #include <drivers/modules/nrf24l01/nrf24l01_soft_driver.h>
 #include "config.h"
+#include "systick.h"
 
 static const struct uart_stm32_settings uart1_settings = {
         .uart_controller_num = CONFIG_USART_CONTROLLER_NUM,
@@ -81,6 +82,8 @@ static inline int init_stage0()
 static inline int init_stage1()
 {
         int ret;
+
+        systick_init();
 
         const struct device* dev = device_get_by_name("uart_1");
         if (dev == NULL)

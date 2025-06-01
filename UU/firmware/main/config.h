@@ -8,6 +8,15 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
+#define DEBUG_ON
+
+#ifdef DEBUG_ON
+#define DEBUG(msg) printk(msg)
+#else
+#define DEBUG(msg)
+#endif
+
+
 /**
  * Номер UART-контроллера.
  * USART1: 1
@@ -42,6 +51,9 @@
 #define CONFIG_RADIO_MISO_PIN 3
 
 /** @} */
+
+/** частота тактирования системного таймера */
+#define SYSTICK_CLOCK 1000000UL
 
 /** MAC источника */
 #define CONFIG_RADIO_RX_MAC {0xD7, 0xD7, 0xD7, 0xD7, 0xD7}
