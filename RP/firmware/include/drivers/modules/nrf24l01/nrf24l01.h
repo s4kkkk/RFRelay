@@ -55,6 +55,15 @@ struct nrf24l01_driver_api {
          */
         int8_t (*nrf24l01_set_channel) (const struct device* dev,
                                      uint8_t channel);
+
+        /**
+         * @brief Получить текущий канал передачи
+         * @param dev экземпляр драйвера
+         *
+         * @return номер активного канала
+         */
+        uint8_t (*nrf24l01_get_channel) (const struct device* dev);
+
         /**
          * @brief установка размера пакета данных
          * @param dev экземпляр драйвера
@@ -169,6 +178,24 @@ static inline int8_t nrf24l01_set_channel(const struct device* dev, uint8_t chan
 
         return api->nrf24l01_set_channel(dev, channel);
 }
+
+/**
+ * @brief Получить текущий канал передачи
+ * @param dev экземпляр драйвера
+ *
+ * @return номер активного канала
+ */
+static inline uint8_t nrf24l01_get_channel(const struct device* dev)
+{
+        struct nrf24l01_driver_api* api = (struct nrf24l01_driver_api* ) dev->api;
+
+        if (api->nrf24l01_get_channel == NULL) {
+                return -1;
+        }
+
+        return api->nrf24l01_get_channel(dev);
+}
+
 
 /**
  * @brief установка размера пакета данных

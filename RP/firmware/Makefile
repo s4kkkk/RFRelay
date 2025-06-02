@@ -18,8 +18,8 @@ include lib/Makefile
 include startup/Makefile
 include kernel/Makefile
 include drivers/Makefile
-# include main/Makefile
-include samples/Makefile
+include main/Makefile
+# include samples/Makefile
 
 OBJS := $(addprefix objs/, $(OBJS))
 

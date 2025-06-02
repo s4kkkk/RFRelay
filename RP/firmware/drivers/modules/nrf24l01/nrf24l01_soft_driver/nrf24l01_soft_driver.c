@@ -95,7 +95,16 @@ static int8_t nrf24l01_soft_driver_set_channel(const struct device* dev, uint8_t
                 (struct nrf24l01_soft_driver_data* ) dev->data;
 
         nrf24_config(channel, data->payload_len);
+        data->channel = channel;
         return 0;
+}
+
+static uint8_t nrf24l01_soft_driver_get_channel(const struct device* dev)
+{
+        struct nrf24l01_soft_driver_data* data = 
+                (struct nrf24l01_soft_driver_data* ) dev->data;
+
+        return data->channel;
 }
 
 static int8_t nrf24l01_soft_driver_set_payload_len(const struct device* dev,
@@ -145,6 +154,7 @@ const struct nrf24l01_driver_api nrf24l01_soft_driver_api = {
         .nrf24l01_set_rx_addr = nrf24l01_soft_driver_set_rx_addr,
         .nrf24l01_set_tx_addr = nrf24l01_soft_driver_set_tx_addr,
         .nrf24l01_set_channel = nrf24l01_soft_driver_set_channel,
+        .nrf24l01_get_channel = nrf24l01_soft_driver_get_channel,
         .nrf24l01_set_payload_len = nrf24l01_soft_driver_set_payload_len,
         .nrf24l01_set_output_power = nrf24l01_soft_driver_set_output_power,
         .nrf24l01_send = nrf24l01_soft_driver_send,
