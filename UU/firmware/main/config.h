@@ -8,12 +8,15 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
+#include "systick.h"
+
 #define DEBUG_ON
 
 #ifdef DEBUG_ON
-#define DEBUG(...) printk(__VA_ARGS__)
+#define DEBUG(fmt, ...) \
+        printk("[%d] " fmt, (uint32_t ) afterboot_time_ms(), ##__VA_ARGS__)
 #else
-#define DEBUG(msg)
+#define DEBUG(...)
 #endif
 
 
@@ -68,10 +71,11 @@
 #define CONFIG_SYSTICK_CLOCK 1000000UL
 
 /** MAC источника */
-#define CONFIG_RADIO_RX_MAC {0xD7, 0xD7, 0xD7, 0xD7, 0xD7}
+#define CONFIG_RADIO_RX_MAC {0xE7, 0xE7, 0xE7, 0xE7, 0xE7}
 
 /** MAC назначения */
-#define CONFIG_RADIO_TX_MAC {0xE7, 0xE7, 0xE7, 0xE7, 0xE7}
+#define CONFIG_RADIO_TX_MAC {0xD7, 0xD7, 0xD7, 0xD7, 0xD7}
+
 
 /** Размер полезной нагрузки в байтах */
 #define CONFIG_RADIO_PAYLOAD_LEN 3
