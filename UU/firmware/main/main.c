@@ -117,7 +117,7 @@ static inline void main_uu_fsm_freq_finding_wait_ans(struct main_uu_data_t* main
         if (nrf24l01_is_data_ready(main_uu_data->radio_nrf)) {
                 nrf24l01_get_data(main_uu_data->radio_nrf, (uint8_t* ) &recieved_packet);
 
-                if (packet_validate_checksum(&recieved_packet)) {
+                if (packet_has_correct_checksum(&recieved_packet)) {
                         setup_timer(&main_uu_data->standby_timer, CONFIG_STANDBY_TIME);
                         reset_timer(&main_uu_data->standby_timer);
                         DEBUG("На канале %d получен ответ. Соединение установлено!\n",
@@ -173,7 +173,7 @@ static inline void main_uu_fsm_standby(struct main_uu_data_t* main_uu_data)
         if (nrf24l01_is_data_ready(main_uu_data->radio_nrf)) {
                 nrf24l01_get_data(main_uu_data->radio_nrf, (uint8_t* ) &recieved_packet);
 
-                if (packet_validate_checksum(&recieved_packet)) {
+                if (packet_has_correct_checksum(&recieved_packet)) {
                         reset_timer(&main_uu_data->standby_timer);
                         if (recieved_packet.packet_type == PACKET_TYPE_REQUEST_STATUS) {
                                 create_and_send_status_packet(main_uu_data);

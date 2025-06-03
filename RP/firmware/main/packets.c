@@ -22,7 +22,7 @@ static inline uint8_t get_crc8_sum(uint8_t *buffer, size_t size)
         return crc;
 }
 
-int8_t packet_validate_checksum(const struct rp_packet* packet)
+int8_t packet_has_correct_checksum(const struct rp_packet* packet)
 {
         if (packet == NULL) {
                 return -1;

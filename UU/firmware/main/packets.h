@@ -94,11 +94,11 @@ struct rp_packet {
  *
  * @param packet Указатель на структуру пакета
  *
- * @retval 0: Контрольная сумма корректна
- * @retval 1: Контрольная сумма некорректна. Пакет поврежден
+ * @retval 0: Контрольная сумма некорректна. Пакет поврежден
+ * @retval 1: Контрольная сумма корректна.
  * @retval -1: Внутренняя ошибка
  */
-int8_t packet_validate_checksum(const struct rp_packet* packet);
+int8_t packet_has_correct_checksum(const struct rp_packet* packet);
 
 /**
  * @brief Вычисление и вставка контрольной суммы пакета

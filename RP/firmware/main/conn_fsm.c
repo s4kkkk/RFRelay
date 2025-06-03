@@ -116,7 +116,7 @@ static inline void conn_fsm_freq_finding_ch_proc(struct conn_fsm_data_t* conn_fs
 
                 DEBUG("На канале %d принят пакет\n", nrf24l01_get_channel(conn_fsm_data->radio_nrf));
 
-                if (packet_validate_checksum(&recieved_packet)) {
+                if (packet_has_correct_checksum(&recieved_packet)) {
                         if (recieved_packet.packet_type == PACKET_TYPE_BEACON) {
                                 create_and_send_beacon_answer(conn_fsm_data);
                                 DEBUG("На канале %d пойман beacon-пакет!\n",
@@ -159,7 +159,7 @@ static inline void conn_fsm_standby(struct conn_fsm_data_t* conn_fsm_data)
         if (nrf24l01_is_data_ready(conn_fsm_data->radio_nrf)) {
                 nrf24l01_get_data(conn_fsm_data->radio_nrf, (uint8_t* ) &recieved_packet);
 
-                if (packet_validate_checksum(&recieved_packet)) {
+                if (packet_has_correct_checksum(&recieved_packet)) {
                         if (recieved_packet.packet_type == PACKET_TYPE_STATUS) {
                                 conn_fsm_data->uu_status = (recieved_packet.flags == FLAG_ON_LINE_POWER) ?
                                         ON_LINE_POWER : OFF_LINE_POWER;
@@ -203,7 +203,7 @@ static inline void conn_fsm_wait_for_status_packet(struct conn_fsm_data_t* conn_
         if (nrf24l01_is_data_ready(conn_fsm_data->radio_nrf)) {
                 nrf24l01_get_data(conn_fsm_data->radio_nrf, (uint8_t* ) &recieved_packet);
 
-                if (packet_validate_checksum(&recieved_packet)) {
+                if (packet_has_correct_checksum(&recieved_packet)) {
                         if (recieved_packet.packet_type == PACKET_TYPE_STATUS) {
                                 reset_timer(&conn_fsm_data->beacon_timer);
                                 conn_fsm_data->uu_status = (recieved_packet.flags == FLAG_ON_LINE_POWER) ?
