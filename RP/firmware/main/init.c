@@ -7,14 +7,16 @@
 
 #include "init.h"
 
-#include "device.h"
+#include <device.h>
 #include <printk.h>
-#include "drivers/uart/uart.h"
+#include <drivers/uart/uart.h>
 #include <drivers/gpio/gpio_stm32f103cx.h>
 #include <drivers/uart/uart_stm32f103cx.h>
 #include <drivers/modules/nrf24l01/nrf24l01_soft_driver.h>
+
 #include "config.h"
 #include "systick.h"
+#include "conn_fsm.h"
 
 static const struct uart_stm32_settings uart1_settings = {
         .uart_controller_num = CONFIG_USART_CONTROLLER_NUM,
@@ -27,11 +29,15 @@ static const struct gpio_stm32_settings gpio_radio_settings = {
 };
 DEVICE_GPIO_STM32_DEFINE(gpio_radio, &gpio_radio_settings);
 
-static const struct gpio_stm32_settings gpio_opto_settings = {
-        .port = CONFIG_GPIO_OPTO_CONTROLLER_NUM,
+static const struct gpio_stm32_settings gpio_switch_settings = {
+        .port = CONFIG_GPIO_SWITCH_CONTROLLER_NUM,
 };
-DEVICE_GPIO_STM32_DEFINE(gpio_opto, &gpio_opto_settings);
+DEVICE_GPIO_STM32_DEFINE(gpio_switch, &gpio_switch_settings);
 
+static const struct gpio_stm32_settings gpio_relay_settings = {
+        .port = CONFIG_GPIO_RELAY_CONTROLLER_NUM,
+};
+DEVICE_GPIO_STM32_DEFINE(gpio_relay, &gpio_relay_settings);
 
 static const struct nrf24l01_soft_driver_settings nrf24l01_settings = {
         .gpio_controller = &gpio_radio,
@@ -74,13 +80,19 @@ static inline int init_stage0()
         if (ret != 0)
                 return -1;
 
-        ret = gpio_stm32_init_driver(&gpio_opto);
+        ret = gpio_stm32_init_driver(&gpio_switch);
         if (ret != 0)
                 return -1;
-        ret = device_register(&gpio_opto);
+        ret = device_register(&gpio_switch);
         if (ret != 0)
                 return -1;
 
+        ret = gpio_stm32_init_driver(&gpio_relay);
+        if (ret != 0)
+                return -1;
+        ret = device_register(&gpio_relay);
+        if (ret != 0)
+                return -1;
 
         ret = nrf24l01_soft_driver_init(&nrf24l01_1);
         if (ret != 0)
@@ -139,6 +151,8 @@ static inline int init_stage1()
         ret = nrf24l01_set_tx_addr(dev, tx_mac_addr);
         if (ret != 0)
                 return -1;
+
+        conn_fsm_init(&conn_fsm_data);
 
         return 0;
 }

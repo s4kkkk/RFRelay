@@ -26,7 +26,10 @@ struct conn_fsm_data_t {
                 OFF_LINE_POWER
         } uu_status;
 
+        uint8_t self_work_flag;
+
         enum {
+                INIT,
                 STANDBY,
                 WAIT_TX_COMPLETE,
                 FREQ_FINDING,
@@ -41,13 +44,15 @@ struct conn_fsm_data_t {
         struct timer_t standby_timer;
         struct timer_t status_req_timer;
         struct timer_t status_answer_timer;
+        struct timer_t self_work_timer;
 
 } conn_fsm_data;
 
 void conn_fsm_init(struct conn_fsm_data_t* conn_fsm_data)
 {
         conn_fsm_data->uu_status = OFF_LINE_POWER;
-        conn_fsm_data->state = FREQ_FINDING;
+        conn_fsm_data->state = INIT;
+        conn_fsm_data->self_work_flag = 0;
 
         const struct device* dev = NULL;
 
@@ -61,6 +66,10 @@ void conn_fsm_init(struct conn_fsm_data_t* conn_fsm_data)
 
 static inline void conn_fsm_freq_finding(struct conn_fsm_data_t* conn_fsm_data)
 {
+        if (is_timer_elapsed(&conn_fsm_data->self_work_timer)) {
+                conn_fsm_data->self_work_flag = 1;
+        }
+
         uint8_t current_channel = nrf24l01_get_channel(conn_fsm_data->radio_nrf);
         if (current_channel < 127) {
                 nrf24l01_set_channel(conn_fsm_data->radio_nrf, current_channel+1);
@@ -106,6 +115,8 @@ static inline void conn_fsm_freq_finding_ch_proc(struct conn_fsm_data_t* conn_fs
                                 create_and_send_beacon_answer(conn_fsm_data);
                                 DEBUG("На канале %d пойман beacon-пакет!\n",
                                       nrf24l01_get_channel(conn_fsm_data->radio_nrf));
+
+                                conn_fsm_data->self_work_flag = 0;
 
                                 conn_fsm_data->state = FREQ_FINDING_WAIT_TX_COMPLETE;
                         }
@@ -162,6 +173,9 @@ static inline void conn_fsm_standby(struct conn_fsm_data_t* conn_fsm_data)
 
         if (is_timer_elapsed(&conn_fsm_data->standby_timer)) {
                 conn_fsm_data->state = FREQ_FINDING;
+                setup_timer(&conn_fsm_data->self_work_timer, CONFIG_SELF_WORK_TIME);
+                reset_timer(&conn_fsm_data->self_work_timer);
+
                 DEBUG("Соединение разорвано! Начинаю поиск рабочего канала\n");
         }
 
@@ -202,6 +216,13 @@ static inline void conn_fsm_wait_for_status_packet(struct conn_fsm_data_t* conn_
 void conn_fsm_work(struct conn_fsm_data_t* conn_fsm_data)
 {
         switch (conn_fsm_data->state) {
+                case INIT: {
+                        setup_timer(&conn_fsm_data->self_work_timer, CONFIG_SELF_WORK_TIME);
+                        reset_timer(&conn_fsm_data->self_work_timer);
+
+                        conn_fsm_data->state = FREQ_FINDING;
+                        break;
+                }
                 case FREQ_FINDING: {
                         conn_fsm_freq_finding(conn_fsm_data);
                         break;
@@ -254,4 +275,9 @@ int8_t conn_fsm_is_uu_online_power(struct conn_fsm_data_t* conn_fsm_data)
         else {
                 return 0;
         }
+}
+
+int8_t conn_fsm_need_self_work(struct conn_fsm_data_t* conn_fsm_data)
+{
+        return conn_fsm_data->self_work_flag;
 }

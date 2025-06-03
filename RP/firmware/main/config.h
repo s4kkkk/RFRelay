@@ -8,12 +8,15 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
+#include "systick.h"
+
 #define DEBUG_ON
 
 #ifdef DEBUG_ON
-#define DEBUG(...) printk(__VA_ARGS__)
+#define DEBUG(fmt, ...) \
+        printk("[%d] " fmt, (uint32_t ) afterboot_time_ms(), ##__VA_ARGS__)
 #else
-#define DEBUG(msg)
+#define DEBUG(...)
 #endif
 
 
@@ -53,16 +56,25 @@
 /** @} */
 
 /**
- * Номер GPIO-контроллера, который будет использоваться для работы с оптопарой
+ * Номер GPIO-контроллера, который будет использоваться для работы с выключателем
  * GPIOA: 0
  * GPIOB: 1
  * ...
  */
-#define CONFIG_GPIO_OPTO_CONTROLLER_NUM 1
+#define CONFIG_GPIO_SWITCH_CONTROLLER_NUM 1
 
-/** Номер GPIO-пина, к которому подлкючена оптопара */
-#define CONFIG_GPIO_OPTO_PIN_NUM 1
+/** Номер GPIO-пина, к которому подлкючена выключатель */
+#define CONFIG_GPIO_SWITCH_PIN_NUM 1
 
+/**
+ * Номер GPIO-контроллера, который будет использоваться для работы с реле
+ * GPIOA: 0
+ * GPIOB: 1
+ */
+#define CONFIG_GPIO_RELAY_CONTROLLER_NUM 2
+
+/** Номер GPIO-пина, к которому подключено реле */
+#define CONFIG_GPIO_RELAY_PIN_NUM 1
 
 /** частота тактирования системного таймера */
 #define CONFIG_SYSTICK_CLOCK 1000000UL
@@ -86,6 +98,11 @@
  * то соединение будет считаться разорванным, а РП перейдет в режим поиска нового канала
  */
 #define CONFIG_STANDBY_TIME 30000
+
+/** Время в мс, по истечении которого РП перейдет в самостоятельный режим (будет включать реле только по переключателю,
+ * в независимости от УУ).
+ */
+#define CONFIG_SELF_WORK_TIME 200000
 
 /** Время в мс, в течение которого будет ожидаться ответ от УУ */
 #define CONFIG_ANSWER_WAIT_TIME 30

@@ -7,30 +7,103 @@
 
 #include "config.h"
 #include "init.h"
-#include "timer.h"
-#include "packets.h"
+#include "conn_fsm.h"
 
-int main()
+struct work_data_t {
+        enum {
+                LED_ON,
+                LED_OFF,
+        } state;
+
+        const struct device* switch_gpio_controller;
+        const struct device* relay_gpio_controller;
+
+} work_data;
+
+void work_init(struct work_data_t* work_data)
 {
-        DEBUG("Initializating started...\n");
+        const struct device* dev = NULL;
+
+        work_data->state = LED_OFF;
+
+        dev = device_get_by_name("gpio_switch");
+
+        if (dev == NULL) {
+                DEBUG("Паника: не найден драйвер gpio выключателя\n");
+                while(1);
+        }
+
+        work_data->switch_gpio_controller = dev;
+
+        dev = device_get_by_name("gpio_relay");
+
+        if (dev == NULL) {
+                DEBUG("Паника: не найден драйвер gpio реле\n");
+                while(1);
+        }
+
+        work_data->relay_gpio_controller = dev;
+        return;
+}
+
+void work(struct work_data_t* work_data)
+{
+        if (!conn_fsm_need_self_work(&conn_fsm_data)) {
+
+                if (gpio_pin_read(work_data->switch_gpio_controller, CONFIG_GPIO_SWITCH_PIN_NUM) && 
+                    conn_fsm_is_uu_online_power(&conn_fsm_data)) {
+                        /* Реле должно быть выключено*/
+                        if (!gpio_pin_read(work_data->relay_gpio_controller, CONFIG_GPIO_RELAY_PIN_NUM)) {
+                                gpio_pin_set(work_data->relay_gpio_controller, CONFIG_GPIO_RELAY_PIN_NUM, 1);
+                        }
+                }
+                else {
+                        /* Реле должно быть выключено */
+                        if (gpio_pin_read(work_data->relay_gpio_controller, CONFIG_GPIO_RELAY_PIN_NUM)) {
+                                gpio_pin_set(work_data->relay_gpio_controller, CONFIG_GPIO_RELAY_PIN_NUM, 0);
+
+                        }
+                }
+        }
+
+        else {
+                /* Состояние реле определяется только выключателем */
+                if (gpio_pin_read(work_data->switch_gpio_controller, CONFIG_GPIO_SWITCH_PIN_NUM)) {
+                        /* Реле должно быть выключено*/
+                        if (!gpio_pin_read(work_data->relay_gpio_controller, CONFIG_GPIO_RELAY_PIN_NUM)) {
+                                gpio_pin_set(work_data->relay_gpio_controller, CONFIG_GPIO_RELAY_PIN_NUM, 1);
+                        }
+
+                }
+                else {
+                        /* Реле должно быть выключено */
+                        if (gpio_pin_read(work_data->relay_gpio_controller, CONFIG_GPIO_RELAY_PIN_NUM)) {
+                                gpio_pin_set(work_data->relay_gpio_controller, CONFIG_GPIO_RELAY_PIN_NUM, 0);
+
+                        }
+                }
+        }
+
+        return;
+}
+
+int main(void)
+{
+        DEBUG("Инициализация...\n");
 
         int ret;
 
         ret = init();
         if (ret != 0) {
-                DEBUG("Panic: hardware initializating failure\n");
+                DEBUG("Паника: ошибка инициализации аппаратных подсистем\n");
                 while(1);
         }
 
-        struct timer_t test_timer;
-        setup_timer(&test_timer, 5000);
+        /* Суперцикл */
 
-        reset_timer(&test_timer);
-        while (1) {
-                if (is_timer_elapsed(&test_timer)) {
-                        printk("Прошло 5 секунд\n");
-                        reset_timer(&test_timer);
-                }
+        while(1) {
+                work(&work_data);
+                conn_fsm_work(&conn_fsm_data);
         }
 
         return 0;
