@@ -60,6 +60,8 @@ void conn_fsm_init(struct conn_fsm_data_t* conn_fsm_data)
                 DEBUG("Паника: не найден модуль nrf24l01\n");
                 while(1);
         }
+        conn_fsm_data->radio_nrf = dev;
+
         return;
 }
 
@@ -71,15 +73,18 @@ static inline void conn_fsm_freq_finding(struct conn_fsm_data_t* conn_fsm_data)
 
         uint8_t current_channel = nrf24l01_get_channel(conn_fsm_data->radio_nrf);
         if (current_channel < 127) {
-                nrf24l01_set_channel(conn_fsm_data->radio_nrf, current_channel+1);
+                current_channel++;
+                nrf24l01_set_channel(conn_fsm_data->radio_nrf, current_channel);
         }
         else {
-                nrf24l01_set_channel(conn_fsm_data->radio_nrf, 0);
+                current_channel = 0;
+                nrf24l01_set_channel(conn_fsm_data->radio_nrf, current_channel);
         }
 
         conn_fsm_data->state = FREQ_FINDING_CH_PROC;
         setup_timer(&conn_fsm_data->beacon_timer, CONFIG_BEACON_WAIT_TIME);
         reset_timer(&conn_fsm_data->beacon_timer);
+        DEBUG("Поиск рабочего канала: %d / 127\n", current_channel);
         return;
 }
 
@@ -109,6 +114,8 @@ static inline void conn_fsm_freq_finding_ch_proc(struct conn_fsm_data_t* conn_fs
         if (nrf24l01_is_data_ready(conn_fsm_data->radio_nrf)) {
                 nrf24l01_get_data(conn_fsm_data->radio_nrf, (uint8_t* ) &recieved_packet);
 
+                DEBUG("На канале %d принят пакет\n", nrf24l01_get_channel(conn_fsm_data->radio_nrf));
+
                 if (packet_validate_checksum(&recieved_packet)) {
                         if (recieved_packet.packet_type == PACKET_TYPE_BEACON) {
                                 create_and_send_beacon_answer(conn_fsm_data);
@@ -120,6 +127,9 @@ static inline void conn_fsm_freq_finding_ch_proc(struct conn_fsm_data_t* conn_fs
                                 conn_fsm_data->state = FREQ_FINDING_WAIT_TX_COMPLETE;
                         }
 
+                }
+                else {
+                        DEBUG("У пакета неверная контрольная сумма!\n");
                 }
 
         }

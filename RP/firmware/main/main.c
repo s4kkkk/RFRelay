@@ -89,7 +89,6 @@ void work(struct work_data_t* work_data)
 
 int main(void)
 {
-        DEBUG("Инициализация...\n");
 
         int ret;
 
@@ -99,8 +98,10 @@ int main(void)
                 while(1);
         }
 
-        /* Суперцикл */
+        work_init(&work_data);
+        DEBUG("Инициализация завершена...\n");
 
+        /* Суперцикл */
         while(1) {
                 work(&work_data);
                 conn_fsm_work(&conn_fsm_data);
