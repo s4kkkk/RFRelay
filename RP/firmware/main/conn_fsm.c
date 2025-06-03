@@ -15,7 +15,6 @@
 #include <drivers/modules/nrf24l01/nrf24l01.h>
 
 #include "config.h"
-#include "init.h"
 #include "timer.h"
 #include "packets.h"
 
