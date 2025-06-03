@@ -80,7 +80,7 @@ static inline void main_uu_fsm_freq_finding(struct main_uu_data_t* main_uu_data)
         main_uu_data->state = FREQ_FINDING_CH_PROC;
         setup_timer(&main_uu_data->ch_finding_timer, CONFIG_CH_FND_TIME);
         reset_timer(&main_uu_data->ch_finding_timer);
-        DEBUG("Поиск рабочего канала: %d / 127", current_channel);
+        DEBUG("Поиск рабочего канала: %d / 127\n", current_channel);
         return;
 }
 
@@ -238,7 +238,6 @@ void main_uu_fsm_work(struct main_uu_data_t* main_uu_data)
 
 int main(void)
 {
-        DEBUG("Инициализация...\n");
 
         int ret;
 
@@ -247,6 +246,8 @@ int main(void)
                 DEBUG("Паника: ошибка инициализации аппаратных подсистем\n");
                 while(1);
         }
+
+        DEBUG("Инициализация завершена...\n");
 
         main_uu_fsm_init(&main_uu_data);
 

@@ -12,7 +12,7 @@
 
 #include <drivers/uart/uart.h>
 
-#define PRINTK_BUFFER_LEN 64
+#define PRINTK_BUFFER_LEN 256
 
 static const struct device* printk_controller;
 static char printk_buffer[PRINTK_BUFFER_LEN];
