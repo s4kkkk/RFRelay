@@ -61,10 +61,10 @@
  * GPIOB: 1
  * ...
  */
-#define CONFIG_GPIO_OPTO_CONTROLLER_NUM 1
+#define CONFIG_GPIO_OPTO_CONTROLLER_NUM 0
 
 /** Номер GPIO-пина, к которому подлкючена оптопара */
-#define CONFIG_GPIO_OPTO_PIN_NUM 1
+#define CONFIG_GPIO_OPTO_PIN_NUM 2
 
 
 /** частота тактирования системного таймера */

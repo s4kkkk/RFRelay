@@ -69,10 +69,12 @@ static inline void main_uu_fsm_freq_finding(struct main_uu_data_t* main_uu_data)
 {
         uint8_t current_channel = nrf24l01_get_channel(main_uu_data->radio_nrf);
         if (current_channel < 127) {
-                nrf24l01_set_channel(main_uu_data->radio_nrf, current_channel+1);
+                current_channel++;
+                nrf24l01_set_channel(main_uu_data->radio_nrf, current_channel);
         }
         else {
-                nrf24l01_set_channel(main_uu_data->radio_nrf, 0);
+                current_channel = 0;
+                nrf24l01_set_channel(main_uu_data->radio_nrf, current_channel);
         }
 
         main_uu_data->state = FREQ_FINDING_CH_PROC;
@@ -118,6 +120,9 @@ static inline void main_uu_fsm_freq_finding_wait_ans(struct main_uu_data_t* main
                 if (packet_validate_checksum(&recieved_packet)) {
                         setup_timer(&main_uu_data->standby_timer, CONFIG_STANDBY_TIME);
                         reset_timer(&main_uu_data->standby_timer);
+                        DEBUG("На канале %d получен ответ. Соединение установлено!\n",
+                              nrf24l01_get_channel(main_uu_data->radio_nrf));
+
                         main_uu_data->state = STANDBY;
                 }
 
@@ -179,6 +184,7 @@ static inline void main_uu_fsm_standby(struct main_uu_data_t* main_uu_data)
 
         }
         else if (is_timer_elapsed(&main_uu_data->standby_timer)) {
+                DEBUG("Истек STANDBY-таймер. Начинаю поиск частоты\n");
                 main_uu_data->state = FREQ_FINDING;
         }
 
@@ -232,24 +238,22 @@ void main_uu_fsm_work(struct main_uu_data_t* main_uu_data)
 
 int main(void)
 {
-        DEBUG("Initializating started...\n");
+        DEBUG("Инициализация...\n");
 
         int ret;
 
         ret = init();
         if (ret != 0) {
-                DEBUG("Panic: hardware initializating failure\n");
+                DEBUG("Паника: ошибка инициализации аппаратных подсистем\n");
                 while(1);
         }
 
-        struct timer_t test_timer;
-        setup_timer(&test_timer, 5000);
+        main_uu_fsm_init(&main_uu_data);
 
-        reset_timer(&test_timer);
-        while (1) {
-                if (is_timer_elapsed(&test_timer)) {
-                        printk("Прошло 5 секунд\n");
-                        reset_timer(&test_timer);
-                }
+        /* Суперцикл */
+        while(1) {
+                main_uu_fsm_work(&main_uu_data);
         }
+
+        return 0;
 }
