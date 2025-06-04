@@ -89,7 +89,7 @@
 #define CONFIG_RADIO_PAYLOAD_LEN 3
 
 /** Время в мс, в течение которого на канале будет ожидаться beacon-пакет */
-#define CONFIG_BEACON_WAIT_TIME 500
+#define CONFIG_BEACON_WAIT_TIME 250
 
 /** Время в мс, по истечении которого будет отправлен очередной запрос к УУ */
 #define CONFIG_STATUS_REQ_TIME 10000
@@ -105,6 +105,6 @@
 #define CONFIG_SELF_WORK_TIME 200000
 
 /** Время в мс, в течение которого будет ожидаться ответ от УУ */
-#define CONFIG_ANSWER_WAIT_TIME 30
+#define CONFIG_ANSWER_WAIT_TIME 200
 
 #endif // CONFIG_H

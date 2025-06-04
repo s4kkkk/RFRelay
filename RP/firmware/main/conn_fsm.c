@@ -34,7 +34,7 @@ struct conn_fsm_data_t {
                 FREQ_FINDING,
                 FREQ_FINDING_CH_PROC,
                 FREQ_FINDING_WAIT_TX_COMPLETE,
-                WAIT_FOR_STATUS_PACKET
+                WAIT_FOR_STATUS_PACKET,
         } state;
 
         const struct device* radio_nrf;
@@ -68,12 +68,13 @@ void conn_fsm_init(struct conn_fsm_data_t* conn_fsm_data)
 static inline void conn_fsm_freq_finding(struct conn_fsm_data_t* conn_fsm_data)
 {
         if (is_timer_elapsed(&conn_fsm_data->self_work_timer)) {
+                DEBUG("С УУ давно не было сеансов связи. Перехожу в самостоятельный режим..\n");
                 conn_fsm_data->self_work_flag = 1;
         }
 
         uint8_t current_channel = nrf24l01_get_channel(conn_fsm_data->radio_nrf);
-        if (current_channel < 127) {
-                current_channel++;
+        if (current_channel < 120) {
+                current_channel += 15;
                 nrf24l01_set_channel(conn_fsm_data->radio_nrf, current_channel);
         }
         else {
@@ -119,8 +120,10 @@ static inline void conn_fsm_freq_finding_ch_proc(struct conn_fsm_data_t* conn_fs
                 if (packet_has_correct_checksum(&recieved_packet)) {
                         if (recieved_packet.packet_type == PACKET_TYPE_BEACON) {
                                 create_and_send_beacon_answer(conn_fsm_data);
-                                DEBUG("На канале %d пойман beacon-пакет!\n",
+
+                                DEBUG("На канале %d пойман beacon-пакет. Соединение установлено!\n",
                                       nrf24l01_get_channel(conn_fsm_data->radio_nrf));
+
 
                                 conn_fsm_data->self_work_flag = 0;
 
@@ -158,15 +161,27 @@ static inline void conn_fsm_standby(struct conn_fsm_data_t* conn_fsm_data)
 
         if (nrf24l01_is_data_ready(conn_fsm_data->radio_nrf)) {
                 nrf24l01_get_data(conn_fsm_data->radio_nrf, (uint8_t* ) &recieved_packet);
+                DEBUG("Принят пакет!\n");
 
                 if (packet_has_correct_checksum(&recieved_packet)) {
                         if (recieved_packet.packet_type == PACKET_TYPE_STATUS) {
-                                conn_fsm_data->uu_status = (recieved_packet.flags == FLAG_ON_LINE_POWER) ?
-                                        ON_LINE_POWER : OFF_LINE_POWER;
+                                DEBUG("Получил статус от УУ:\n");
+
+                                if (recieved_packet.flags == FLAG_ON_LINE_POWER) {
+                                        conn_fsm_data->uu_status = ON_LINE_POWER;
+                                        DEBUG("ВЫСОКИЙ УРОВЕНЬ\n");
+                                }
+                                else {
+                                        conn_fsm_data->uu_status = OFF_LINE_POWER;
+                                        DEBUG("НИЗКИЙ УРОВЕНЬ\n");
+                                }
+
                                 reset_timer(&conn_fsm_data->standby_timer);
-                                DEBUG("Получил статус от УУ\n");
                         }
 
+                }
+                else {
+                        DEBUG("У пакета некорректная контрольная сумма!\n");
                 }
                 return;
 
@@ -203,13 +218,23 @@ static inline void conn_fsm_wait_for_status_packet(struct conn_fsm_data_t* conn_
         if (nrf24l01_is_data_ready(conn_fsm_data->radio_nrf)) {
                 nrf24l01_get_data(conn_fsm_data->radio_nrf, (uint8_t* ) &recieved_packet);
 
+                DEBUG("Получен пакет!\n");
+
                 if (packet_has_correct_checksum(&recieved_packet)) {
                         if (recieved_packet.packet_type == PACKET_TYPE_STATUS) {
-                                reset_timer(&conn_fsm_data->beacon_timer);
-                                conn_fsm_data->uu_status = (recieved_packet.flags == FLAG_ON_LINE_POWER) ?
-                                        ON_LINE_POWER : OFF_LINE_POWER;
-                                DEBUG("Получен ответ от УУ: %d\n", conn_fsm_data->uu_status);
-                                
+                                reset_timer(&conn_fsm_data->standby_timer);
+
+                                DEBUG("Получил ответ от УУ:\n");
+
+                                if (recieved_packet.flags == FLAG_ON_LINE_POWER) {
+                                        conn_fsm_data->uu_status = ON_LINE_POWER;
+                                        DEBUG("ВЫСОКИЙ УРОВЕНЬ\n");
+                                }
+                                else {
+                                        conn_fsm_data->uu_status = OFF_LINE_POWER;
+                                        DEBUG("НИЗКИЙ УРОВЕНЬ\n");
+                                }
+
                                 conn_fsm_data->state = STANDBY;
                         }
 

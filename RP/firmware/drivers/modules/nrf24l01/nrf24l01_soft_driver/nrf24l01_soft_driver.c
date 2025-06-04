@@ -118,6 +118,7 @@ static int8_t nrf24l01_soft_driver_set_payload_len(const struct device* dev,
                 (struct nrf24l01_soft_driver_data* ) dev->data;
 
         nrf24_config(data->channel, payload_len);
+        data->payload_len = payload_len;
         return 0;
 }
 
@@ -136,7 +137,11 @@ static int8_t nrf24l01_soft_driver_send(const struct device* dev, const uint8_t*
 
 static int8_t nrf24l01_soft_driver_is_sending(const struct device* dev)
 {
-        return nrf24_isSending();
+        if (!nrf24_isSending()) {
+                nrf24_powerUpRx();
+                return 0;
+        }
+        return 1;
 }
 
 static int8_t nrf24l01_soft_driver_is_data_ready(const struct device* dev)
