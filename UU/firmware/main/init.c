@@ -119,8 +119,7 @@ static inline int init_stage1()
         if (dev == NULL)
                 return -1;
 
-        /* второй канал */
-        ret = nrf24l01_set_channel(dev, 2);
+        ret = nrf24l01_set_channel(dev, 0);
         if (ret != 0)
                 return -1;
 

@@ -68,8 +68,8 @@ void main_uu_fsm_init(struct main_uu_data_t* main_uu_data)
 static inline void main_uu_fsm_freq_finding(struct main_uu_data_t* main_uu_data)
 {
         uint8_t current_channel = nrf24l01_get_channel(main_uu_data->radio_nrf);
-        if (current_channel < 127) {
-                current_channel++;
+        if (current_channel < 120) {
+                current_channel += 15;
                 nrf24l01_set_channel(main_uu_data->radio_nrf, current_channel);
         }
         else {
@@ -107,7 +107,7 @@ static inline void main_uu_fsm_freq_finding_ch_proc(struct main_uu_data_t* main_
 static inline void main_uu_fsm_freq_finding_wait_ans(struct main_uu_data_t* main_uu_data)
 {
         if (is_timer_elapsed(&main_uu_data->beacon_ans_timer)) {
-
+                // DEBUG("Таймер ожидания ответа на beacon истек!\n");
                 main_uu_data->state = FREQ_FINDING_CH_PROC;
                 return;
         }
@@ -116,6 +116,7 @@ static inline void main_uu_fsm_freq_finding_wait_ans(struct main_uu_data_t* main
 
         if (nrf24l01_is_data_ready(main_uu_data->radio_nrf)) {
                 nrf24l01_get_data(main_uu_data->radio_nrf, (uint8_t* ) &recieved_packet);
+                DEBUG("На канале %d принят ответ\n", nrf24l01_get_channel(main_uu_data->radio_nrf));
 
                 if (packet_has_correct_checksum(&recieved_packet)) {
                         setup_timer(&main_uu_data->standby_timer, CONFIG_STANDBY_TIME);
@@ -124,6 +125,9 @@ static inline void main_uu_fsm_freq_finding_wait_ans(struct main_uu_data_t* main
                               nrf24l01_get_channel(main_uu_data->radio_nrf));
 
                         main_uu_data->state = STANDBY;
+                }
+                else {
+                        DEBUG("У пакета неверная контрольная сумма!\n");
                 }
 
         }
@@ -165,6 +169,16 @@ static inline void main_uu_fsm_standby(struct main_uu_data_t* main_uu_data)
         if (opto_pin != main_uu_data->prev_opto_status) {
                 create_and_send_status_packet(main_uu_data);
                 main_uu_data->state = WAIT_TO_TX_END;
+                DEBUG("Зафиксировано изменение состояния отслеживаемого пина:\n");
+                if (opto_pin) {
+                        DEBUG("ВЫСОКИЙ УРОВЕНЬ\n");
+                }
+                else {
+                        DEBUG("НИЗКИЙ УРОВЕНЬ\n");
+                }
+
+                DEBUG("Отправляю сигнал на РП...\n");
+
                 return;
         }
 
@@ -172,10 +186,12 @@ static inline void main_uu_fsm_standby(struct main_uu_data_t* main_uu_data)
 
         if (nrf24l01_is_data_ready(main_uu_data->radio_nrf)) {
                 nrf24l01_get_data(main_uu_data->radio_nrf, (uint8_t* ) &recieved_packet);
+                DEBUG("На канале %d принят пакет\n", nrf24l01_get_channel(main_uu_data->radio_nrf));
 
                 if (packet_has_correct_checksum(&recieved_packet)) {
                         reset_timer(&main_uu_data->standby_timer);
                         if (recieved_packet.packet_type == PACKET_TYPE_REQUEST_STATUS) {
+                                DEBUG("Принят запрос состояния от РП. Ответ отправлен..\n");
                                 create_and_send_status_packet(main_uu_data);
                                 main_uu_data->state = WAIT_TO_TX_END;
                         }
