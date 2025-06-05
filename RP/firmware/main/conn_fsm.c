@@ -35,6 +35,9 @@ struct conn_fsm_data_t {
                 FREQ_FINDING_CH_PROC,
                 FREQ_FINDING_WAIT_TX_COMPLETE,
                 WAIT_FOR_STATUS_PACKET,
+                FREQ_FINDING_ANSWER_PROCESS,
+                WAIT_TX_BEACON_ANS_COMPLETE,
+
         } state;
 
         const struct device* radio_nrf;
@@ -44,6 +47,8 @@ struct conn_fsm_data_t {
         struct timer_t status_req_timer;
         struct timer_t status_answer_timer;
         struct timer_t self_work_timer;
+
+        uint8_t beacon_ans_counter;
 
 } conn_fsm_data;
 
@@ -62,12 +67,14 @@ void conn_fsm_init(struct conn_fsm_data_t* conn_fsm_data)
         }
         conn_fsm_data->radio_nrf = dev;
 
+        conn_fsm_data->beacon_ans_counter = 0;
+
         return;
 }
 
 static inline void conn_fsm_freq_finding(struct conn_fsm_data_t* conn_fsm_data)
 {
-        if (is_timer_elapsed(&conn_fsm_data->self_work_timer)) {
+        if (is_timer_elapsed(&conn_fsm_data->self_work_timer) && !conn_fsm_data->self_work_flag) {
                 DEBUG("С УУ давно не было сеансов связи. Перехожу в самостоятельный режим..\n");
                 conn_fsm_data->self_work_flag = 1;
         }
@@ -119,15 +126,13 @@ static inline void conn_fsm_freq_finding_ch_proc(struct conn_fsm_data_t* conn_fs
 
                 if (packet_has_correct_checksum(&recieved_packet)) {
                         if (recieved_packet.packet_type == PACKET_TYPE_BEACON) {
-                                create_and_send_beacon_answer(conn_fsm_data);
 
                                 DEBUG("На канале %d пойман beacon-пакет. Соединение установлено!\n",
                                       nrf24l01_get_channel(conn_fsm_data->radio_nrf));
 
-
+                                conn_fsm_data->beacon_ans_counter = 0;
                                 conn_fsm_data->self_work_flag = 0;
-
-                                conn_fsm_data->state = FREQ_FINDING_WAIT_TX_COMPLETE;
+                                conn_fsm_data->state = FREQ_FINDING_ANSWER_PROCESS;
                         }
 
                 }
@@ -247,6 +252,20 @@ static inline void conn_fsm_wait_for_status_packet(struct conn_fsm_data_t* conn_
         return;
 }
 
+static inline void conn_fsm_freq_finding_answer_process(struct conn_fsm_data_t* conn_fsm_data)
+{
+        create_and_send_beacon_answer(conn_fsm_data);
+
+        if (conn_fsm_data->beacon_ans_counter == (CONFIG_BEACON_ANS_PACKETS_COUNT - 1) ) {
+                /* Отправлено нужно кол-во ответных пакетов */
+                conn_fsm_data->state = FREQ_FINDING_WAIT_TX_COMPLETE;
+        }
+        else {
+                conn_fsm_data->state = WAIT_TX_BEACON_ANS_COMPLETE;
+        }
+        return;
+}
+
 void conn_fsm_work(struct conn_fsm_data_t* conn_fsm_data)
 {
         switch (conn_fsm_data->state) {
@@ -296,6 +315,19 @@ void conn_fsm_work(struct conn_fsm_data_t* conn_fsm_data)
                 case WAIT_FOR_STATUS_PACKET: {
                         conn_fsm_wait_for_status_packet(conn_fsm_data);
                         break;
+                }
+
+                case FREQ_FINDING_ANSWER_PROCESS: {
+                        conn_fsm_freq_finding_answer_process(conn_fsm_data);
+                        break;
+                }
+
+                case WAIT_TX_BEACON_ANS_COMPLETE: {
+                        if (!nrf24l01_is_sending(conn_fsm_data->radio_nrf)) {
+                                conn_fsm_data->beacon_ans_counter++;
+                                conn_fsm_data->state = FREQ_FINDING_ANSWER_PROCESS;
+                                break;
+                        }
                 }
         }
         return;
