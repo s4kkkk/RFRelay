@@ -63,18 +63,24 @@
  */
 #define CONFIG_GPIO_SWITCH_CONTROLLER_NUM 1
 
-/** Номер GPIO-пина, к которому подлкючена выключатель */
-#define CONFIG_GPIO_SWITCH_PIN_NUM 1
+/** Номер GPIO-пина, к которому подключен выключатель */
+#define CONFIG_GPIO_SWITCH_PIN_NUM 0
 
 /**
  * Номер GPIO-контроллера, который будет использоваться для работы с реле
  * GPIOA: 0
  * GPIOB: 1
  */
-#define CONFIG_GPIO_RELAY_CONTROLLER_NUM 2
+#define CONFIG_GPIO_RELAY_CONTROLLER_NUM 1
 
-/** Номер GPIO-пина, к которому подключено реле */
-#define CONFIG_GPIO_RELAY_PIN_NUM 1
+/** Номер GPIO-пина, к которому подключен пин сброса реле */
+#define CONFIG_GPIO_RELAY_SET_PIN_NUM 1
+
+/** Номер GPIO-пина, к которому подключен пин установки реле */
+#define CONFIG_GPIO_RELAY_RST_PIN_NUM 2
+
+/** Время в мс, в течение которого РП будет ждать переключения реле */
+#define CONFIG_RELAY_WAIT_TIME 100
 
 /** частота тактирования системного таймера */
 #define CONFIG_SYSTICK_CLOCK 1000000UL
