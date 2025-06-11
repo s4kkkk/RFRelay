@@ -82,6 +82,20 @@
 /** Время в мс, в течение которого РП будет ждать переключения реле */
 #define CONFIG_RELAY_WAIT_TIME 100
 
+/**
+ * Номер GPIO-контроллера, который будет использоваться для индикации светодиодами
+ * GPIOA: 0
+ * GPIOB: 1
+ * ...
+ */
+#define CONFIG_GPIO_LED_CONTROLLER_NUM 1
+
+/** Номер GPIO-пина, к которому подключен красный светодиод */
+#define CONFIG_GPIO_RED_LED_PIN 1
+
+/** Номер GPIO-пина, к которому подключен зеленый светодиод */
+#define CONFIG_GPIO_GREEN_LED_PIN 1
+
 /** частота тактирования системного таймера */
 #define CONFIG_SYSTICK_CLOCK 1000000UL
 
