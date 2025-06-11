@@ -8,7 +8,9 @@
 #include "config.h"
 #include "init.h"
 #include "conn_fsm.h"
+#include "indicator_fsm.h"
 #include "timer.h"
+
 
 struct work_data_t {
         enum {
@@ -22,7 +24,7 @@ struct work_data_t {
         const struct device* switch_gpio_controller;
         const struct device* relay_gpio_controller;
 
-        struct timer_t* relay_timer;
+        struct timer_t relay_timer;
 
 
 } work_data;
@@ -70,9 +72,10 @@ static inline void work_default(struct work_data_t* work_data)
                         /* Реле должно быть включено*/
                         if (work_data->state != RELAY_SETTED) {
                                 gpio_pin_set(work_data->relay_gpio_controller, CONFIG_GPIO_RELAY_SET_PIN_NUM, 1);
+                                DEBUG("Установка реле...\n");
 
-                                setup_timer(work_data->relay_timer, CONFIG_RELAY_WAIT_TIME);
-                                reset_timer(work_data->relay_timer);
+                                setup_timer(&work_data->relay_timer, CONFIG_RELAY_WAIT_TIME);
+                                reset_timer(&work_data->relay_timer);
 
                                 work_data->state = WAIT_FOR_RELAY_SETTING;
                                 return;
@@ -83,9 +86,10 @@ static inline void work_default(struct work_data_t* work_data)
                         /* Реле должно быть выключено */
                         if (work_data->state != RELAY_RESETTED) {
                                 gpio_pin_set(work_data->relay_gpio_controller, CONFIG_GPIO_RELAY_RST_PIN_NUM, 1);
+                                DEBUG("Сброс реле...\n");
 
-                                setup_timer(work_data->relay_timer, CONFIG_RELAY_WAIT_TIME);
-                                reset_timer(work_data->relay_timer);
+                                setup_timer(&work_data->relay_timer, CONFIG_RELAY_WAIT_TIME);
+                                reset_timer(&work_data->relay_timer);
 
                                 work_data->state = WAIT_FOR_RELAY_RESETTING;
                                 return;
@@ -101,9 +105,10 @@ static inline void work_default(struct work_data_t* work_data)
                         /* Реле должно быть включено*/
                         if (work_data->state != RELAY_SETTED) {
                                 gpio_pin_set(work_data->relay_gpio_controller, CONFIG_GPIO_RELAY_SET_PIN_NUM, 1);
+                                DEBUG("Установка реле...\n");
 
-                                setup_timer(work_data->relay_timer, CONFIG_RELAY_WAIT_TIME);
-                                reset_timer(work_data->relay_timer);
+                                setup_timer(&work_data->relay_timer, CONFIG_RELAY_WAIT_TIME);
+                                reset_timer(&work_data->relay_timer);
 
                                 work_data->state = WAIT_FOR_RELAY_SETTING;
                                 return;
@@ -114,9 +119,10 @@ static inline void work_default(struct work_data_t* work_data)
                         /* Реле должно быть выключено */
                         if (work_data->state != RELAY_RESETTED) {
                                 gpio_pin_set(work_data->relay_gpio_controller, CONFIG_GPIO_RELAY_RST_PIN_NUM, 1);
+                                DEBUG("Сброс реле...\n");
 
-                                setup_timer(work_data->relay_timer, CONFIG_RELAY_WAIT_TIME);
-                                reset_timer(work_data->relay_timer);
+                                setup_timer(&work_data->relay_timer, CONFIG_RELAY_WAIT_TIME);
+                                reset_timer(&work_data->relay_timer);
 
                                 work_data->state = WAIT_FOR_RELAY_RESETTING;
                                 return;
@@ -134,14 +140,16 @@ void work(struct work_data_t* work_data)
         switch (work_data->state) {
 
                 case WAIT_FOR_RELAY_SETTING: {
-                        if (is_timer_elapsed(work_data->relay_timer)) {
+                        if (is_timer_elapsed(&work_data->relay_timer)) {
+                                gpio_pin_set(work_data->relay_gpio_controller, CONFIG_GPIO_RELAY_SET_PIN_NUM, 0);
                                 work_data->state = RELAY_SETTED;
                         }
                         break;
                 }
 
                 case WAIT_FOR_RELAY_RESETTING: {
-                        if (is_timer_elapsed(work_data->relay_timer)) {
+                        if (is_timer_elapsed(&work_data->relay_timer)) {
+                                gpio_pin_set(work_data->relay_gpio_controller, CONFIG_GPIO_RELAY_RST_PIN_NUM, 0);
                                 work_data->state = RELAY_RESETTED;
                         }
                         break;
@@ -169,12 +177,14 @@ int main(void)
         }
 
         work_init(&work_data);
+        indicator_fsm_init(&indicator_fsm_data);
         DEBUG("Инициализация завершена...\n");
 
         /* Суперцикл */
         while(1) {
                 work(&work_data);
                 conn_fsm_work(&conn_fsm_data);
+                indicator_fsm_work(&indicator_fsm_data);
         }
 
         return 0;

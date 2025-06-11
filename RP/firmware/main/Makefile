@@ -4,3 +4,4 @@ OBJS += main/conn_fsm.o
 OBJS += main/packets.o
 OBJS += main/systick.o
 OBJS += main/timer.o
+OBJS += main/indicator_fsm.o

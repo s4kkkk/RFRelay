@@ -15,6 +15,7 @@
 #include <drivers/modules/nrf24l01/nrf24l01.h>
 
 #include "config.h"
+#include "indicator_fsm.h"
 #include "timer.h"
 #include "packets.h"
 
@@ -76,6 +77,7 @@ static inline void conn_fsm_freq_finding(struct conn_fsm_data_t* conn_fsm_data)
 {
         if (is_timer_elapsed(&conn_fsm_data->self_work_timer) && !conn_fsm_data->self_work_flag) {
                 DEBUG("С УУ давно не было сеансов связи. Перехожу в самостоятельный режим..\n");
+                indicator_set_status(&indicator_fsm_data, INDICATOR_SELF_WORK);
                 conn_fsm_data->self_work_flag = 1;
         }
 
@@ -202,6 +204,7 @@ static inline void conn_fsm_standby(struct conn_fsm_data_t* conn_fsm_data)
 
         if (is_timer_elapsed(&conn_fsm_data->standby_timer)) {
                 conn_fsm_data->state = FREQ_FINDING;
+                indicator_set_status(&indicator_fsm_data, INDICATOR_FREQ_FINDING);
                 setup_timer(&conn_fsm_data->self_work_timer, CONFIG_SELF_WORK_TIME);
                 reset_timer(&conn_fsm_data->self_work_timer);
 
@@ -215,6 +218,7 @@ static inline void conn_fsm_wait_for_status_packet(struct conn_fsm_data_t* conn_
 {
         if (is_timer_elapsed(&conn_fsm_data->status_answer_timer)) {
                 conn_fsm_data->state = STANDBY;
+                indicator_set_status(&indicator_fsm_data, INDICATOR_CONN_ESTABLISHED);
                 return;
         }
 
@@ -241,6 +245,7 @@ static inline void conn_fsm_wait_for_status_packet(struct conn_fsm_data_t* conn_
                                 }
 
                                 conn_fsm_data->state = STANDBY;
+                                indicator_set_status(&indicator_fsm_data, INDICATOR_CONN_ESTABLISHED);
                         }
 
                 }
@@ -293,6 +298,8 @@ void conn_fsm_work(struct conn_fsm_data_t* conn_fsm_data)
 
                                 setup_timer(&conn_fsm_data->standby_timer, CONFIG_STANDBY_TIME);
                                 reset_timer(&conn_fsm_data->standby_timer);
+
+                                indicator_set_status(&indicator_fsm_data, INDICATOR_CONN_ESTABLISHED);
                                 conn_fsm_data->state = STANDBY;
                         }
                         break;

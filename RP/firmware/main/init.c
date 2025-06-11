@@ -60,6 +60,7 @@ DEVICE_NRF24L01_SOFT_DRIVER_DEFINE(nrf24l01_1, &nrf24l01_settings);
 static inline int init_clock()
 {
         RCC->APB2ENR |= RCC_APB2ENR_IOPAEN;
+        RCC->APB2ENR |= RCC_APB2ENR_IOPBEN;
         RCC->APB2ENR |= RCC_APB2ENR_USART1EN;
         return 0;
 }
