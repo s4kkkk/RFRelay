@@ -9,6 +9,7 @@
 #include "init.h"
 #include "timer.h"
 #include "packets.h"
+#include "indicator_fsm.h"
 
 struct main_uu_data_t {
         enum {
@@ -88,6 +89,7 @@ static inline void main_uu_fsm_freq_finding_ch_proc(struct main_uu_data_t* main_
 {
         if (is_timer_elapsed(&main_uu_data->ch_finding_timer)) {
                 main_uu_data->state = FREQ_FINDING;
+                indicator_set_status(&indicator_fsm_data, INDICATOR_FREQ_FINDING);
                 return;
         }
 
@@ -123,6 +125,8 @@ static inline void main_uu_fsm_freq_finding_wait_ans(struct main_uu_data_t* main
                         reset_timer(&main_uu_data->standby_timer);
                         DEBUG("На канале %d получен ответ. Соединение установлено!\n",
                               nrf24l01_get_channel(main_uu_data->radio_nrf));
+
+                        indicator_set_status(&indicator_fsm_data, INDICATOR_CONN_ESTABLISHED);
 
                         main_uu_data->state = STANDBY;
                 }
@@ -201,6 +205,8 @@ static inline void main_uu_fsm_standby(struct main_uu_data_t* main_uu_data)
         }
         else if (is_timer_elapsed(&main_uu_data->standby_timer)) {
                 DEBUG("Истек STANDBY-таймер. Начинаю поиск частоты\n");
+                indicator_set_status(&indicator_fsm_data, INDICATOR_FREQ_FINDING);
+
                 main_uu_data->state = FREQ_FINDING;
         }
 
