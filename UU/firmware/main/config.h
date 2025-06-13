@@ -75,10 +75,10 @@
 #define CONFIG_GPIO_LED_CONTROLLER_NUM 1
 
 /** Номер GPIO-пина, к которому подключен красный светодиод */
-#define CONFIG_GPIO_RED_LED_PIN 5
+#define CONFIG_GPIO_RED_LED_PIN 13
 
 /** Номер GPIO-пина, к которому подключен зеленый светодиод */
-#define CONFIG_GPIO_GREEN_LED_PIN 6
+#define CONFIG_GPIO_GREEN_LED_PIN 15
 
 /** частота тактирования системного таймера */
 #define CONFIG_SYSTICK_CLOCK 1000000UL

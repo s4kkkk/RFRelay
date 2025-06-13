@@ -272,10 +272,12 @@ int main(void)
         DEBUG("Инициализация завершена...\n");
 
         main_uu_fsm_init(&main_uu_data);
+        indicator_fsm_init(&indicator_fsm_data);
 
         /* Суперцикл */
         while(1) {
                 main_uu_fsm_work(&main_uu_data);
+                indicator_fsm_work(&indicator_fsm_data);
         }
 
         return 0;
