@@ -77,13 +77,13 @@ struct rp_packet {
  * @brief 0В на линии
  * @hideinitializer
  */
-#define FLAG_OFF_LINE 0x01 
+#define FLAG_OFF_LINE 0x02
 
 /**
  * @brief Ошибка приема (пакет поврежден). Необходимо повторить передачу
  * @hideinitializer
  */
-#define FLAG_RETRY_REQ 0x02
+#define FLAG_RETRY_REQ 0x03
 
 /** @} */
 

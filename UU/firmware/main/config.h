@@ -66,6 +66,19 @@
 /** Номер GPIO-пина, к которому подлкючена оптопара */
 #define CONFIG_GPIO_OPTO_PIN_NUM 2
 
+/**
+ * Номер GPIO-контроллера, который будет использоваться для индикации светодиодами
+ * GPIOA: 0
+ * GPIOB: 1
+ * ...
+ */
+#define CONFIG_GPIO_LED_CONTROLLER_NUM 1
+
+/** Номер GPIO-пина, к которому подключен красный светодиод */
+#define CONFIG_GPIO_RED_LED_PIN 13
+
+/** Номер GPIO-пина, к которому подключен зеленый светодиод */
+#define CONFIG_GPIO_GREEN_LED_PIN 15
 
 /** частота тактирования системного таймера */
 #define CONFIG_SYSTICK_CLOCK 1000000UL
@@ -80,15 +93,15 @@
 /** Размер полезной нагрузки в байтах */
 #define CONFIG_RADIO_PAYLOAD_LEN 3
 
-/** Время в мс, в течение которого УУ будет ожидать ответа на beacon на одном канале */ 
+/** Время в мс, в течение которого УУ будет слать beacon-пакет на одном канале */ 
 #define CONFIG_CH_FND_TIME 1000
 
 /** Время в мс, в течение которого УУ будет ждать ответа на beacon-пакет */
-#define CONFIG_BEACON_ANS_TIME 20
+#define CONFIG_BEACON_ANS_TIME 50
 
 /** Время в мс. Если в течение этого времени не будет осуществлена ни одна передача,
  * то соединение будет считаться разорванным
  */
-#define CONFIG_STANDBY_TIME 30000
+#define CONFIG_STANDBY_TIME 15000
 
 #endif // CONFIG_H

@@ -73,7 +73,7 @@ static int gpio_stm32_pins_configure(const struct device* port,
                                         GPIO_CRH_CNF8_Msk) << ( 4*(i-8) ) );
 
                                 /* устанавливаем необходимую конфигурацию */
-                                crh_value |= crx_value << (4*i);
+                                crh_value |= crx_value << (4*(i - 8));
                         }
 
                         if (pull_flag) {

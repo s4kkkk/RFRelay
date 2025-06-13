@@ -31,10 +31,10 @@ int8_t packet_has_correct_checksum(const struct rp_packet* packet)
         uint8_t crc8_sum = get_crc8_sum((uint8_t* ) packet,
                                         sizeof(struct rp_packet) - 1);
         if (packet->check_sum == crc8_sum) {
-                return 0;
+                return 1;
         }
         else {
-                return 1;
+                return 0;
         }
 }
 
