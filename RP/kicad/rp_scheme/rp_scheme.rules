@@ -1,0 +1,118 @@
+
+(rules PCB rp_scheme.dsn
+  (snap_angle 
+    fortyfive_degree
+  )
+  (autoroute_settings
+    (fanout off)
+    (autoroute on)
+    (postroute on)
+    (vias on)
+    (via_costs 50)
+    (plane_via_costs 5)
+    (start_ripup_costs 100)
+    (start_pass_no 1)
+    (layer_rule F.Cu
+      (active on)
+      (preferred_direction vertical)
+      (preferred_direction_trace_costs 1.0)
+      (against_preferred_direction_trace_costs 3.5)
+    )
+    (layer_rule B.Cu
+      (active on)
+      (preferred_direction horizontal)
+      (preferred_direction_trace_costs 1.0)
+      (against_preferred_direction_trace_costs 3.5)
+    )
+  )
+  (rule
+    (width 200.0)
+    (clearance 200.0)
+    (clearance 100.0 (type smd_to_turn_gap))
+    (clearance 50.0 (type smd))
+    (clearance 200.0 (type "kicad_default"))
+    (clearance 500.0 (type relay,Default))
+    (clearance 1800.0 (type 220,Default))
+  )
+  (padstack "Via[0-1]_600:300_um"
+    (shape
+      (circle F.Cu 600.0 0.0 0.0)
+    )
+    (shape
+      (circle B.Cu 600.0 0.0 0.0)
+    )
+    (attach off)
+  )
+  (via 
+    "Via[0-1]_600:300_um" "Via[0-1]_600:300_um" default
+  )
+  (via 
+    "Via[0-1]_600:300_um-kicad_default" "Via[0-1]_600:300_um" "kicad_default"
+  )
+  (via 
+    "Via[0-1]_600:300_um-relay,Default" "Via[0-1]_600:300_um" relay,Default
+  )
+  (via 
+    "Via[0-1]_600:300_um-220,Default" "Via[0-1]_600:300_um" 220,Default
+  )
+  (via_rule
+    default "Via[0-1]_600:300_um"
+  )
+  (via_rule
+    "kicad_default" "Via[0-1]_600:300_um-kicad_default"
+  )
+  (via_rule
+    relay,Default "Via[0-1]_600:300_um-relay,Default"
+  )
+  (via_rule
+    220,Default "Via[0-1]_600:300_um-220,Default"
+  )
+  (class default
+    (clearance_class default)
+    (via_rule default)
+    (rule
+      (width 200.0)
+    )
+    (circuit 
+      (use_layer F.Cu B.Cu)
+    )
+  )
+  (class "kicad_default"
+    Earth +5V "Net-(U3-NRST)" +3V3 "/R_set" "/R_reset" /SW2 /RX
+    /SWDIO /SWCLK /TX "/RST_PIN" "/SET_PIN" "Net-(U3-BOOT0)" /CE /MOSI
+    /MISO "unconnected-(U1-IRQ-Pad8)" /CS /SCK "unconnected-(U3-PA15-Pad38)" "unconnected-(U3-PA12-Pad33)" "unconnected-(U3-PC15-Pad4)" "unconnected-(U3-PB6-Pad42)"
+    "unconnected-(U3-PB8-Pad45)" "unconnected-(U3-PB7-Pad43)" "unconnected-(U3-PD0-Pad5)" "unconnected-(U3-PB11-Pad22)" "unconnected-(U3-PA11-Pad32)" "unconnected-(U3-PC14-Pad3)" "unconnected-(U3-PA0-Pad10)" "unconnected-(U3-PC13-Pad2)"
+    "unconnected-(U3-PB14-Pad27)" "unconnected-(U3-PB9-Pad46)" "unconnected-(U3-PD1-Pad6)" "unconnected-(U3-PA1-Pad11)" "unconnected-(U3-PB2-Pad20)" "unconnected-(U3-PB4-Pad40)" "unconnected-(U3-PA8-Pad29)" "unconnected-(U3-PB12-Pad25)"
+    "unconnected-(U3-PB3-Pad39)" "unconnected-(U3-PA2-Pad12)" "unconnected-(U3-PB5-Pad41)" "unconnected-(U3-PB15-Pad28)" "unconnected-(U3-PB13-Pad26)"
+    (clearance_class "kicad_default")
+    (via_rule "kicad_default")
+    (rule
+      (width 200.0)
+    )
+    (circuit 
+      (use_layer F.Cu B.Cu)
+    )
+  )
+  (class relay,Default
+    /R2 /R1
+    (clearance_class relay,Default)
+    (via_rule relay,Default)
+    (rule
+      (width 2000.0)
+    )
+    (circuit 
+      (use_layer F.Cu B.Cu)
+    )
+  )
+  (class 220,Default
+    "/L_pit" /N
+    (clearance_class 220,Default)
+    (via_rule 220,Default)
+    (rule
+      (width 2000.0)
+    )
+    (circuit 
+      (use_layer F.Cu B.Cu)
+    )
+  )
+)
